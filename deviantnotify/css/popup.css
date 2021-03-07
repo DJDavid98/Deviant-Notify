@@ -1,0 +1,72 @@
+#popup-icons {
+	display: flex;
+	background: var(--icon-bg-normal);
+	border-bottom: 1px solid var(--icon-border);
+	max-height: 54px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+#popup-icons .icon-link {
+	display: inline-flex;
+	flex: 0 0 auto;
+	font-size: 24px;
+	line-height: 2.25em;
+	height: 2.25em;
+	padding: 0 .75em;
+}
+
+#popup-icons,
+#popup-icons .icon-link {
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: center;
+}
+
+#popup-icons > *:hover {
+	background: var(--icon-bg-hover);
+}
+
+#popup-icons .icon-image,
+#popup-icons .icon-count {
+	display: inline-flex;
+	line-height: inherit;
+}
+
+#popup-icons .icon-link {
+	cursor: pointer;
+}
+
+#popup-icons .icon-image {
+	height: 1em;
+	width: 1em;
+}
+
+#popup-icons .icon-count {
+	background: var(--icon-bg-hover);
+	color: var(--icon-text);
+	padding: 0 .375em;
+	margin-left: .375em;
+	text-align: center;
+}
+#popup-icons .icon-count:empty {
+	display: none;
+}
+
+#popup-icons .icon-image path,
+#notif-container .icon-image path {
+	fill: var(--icon-color);
+}
+#popup-icons .icon-link:hover .icon-image path,
+#notif-container .icon-link:hover .icon-image path {
+	fill: var(--icon-hover-color);
+}
+
+footer {
+	padding: .4em;
+}
+
+#credits {
+	margin-top: 2em;
+	font-size: .9em;
+}

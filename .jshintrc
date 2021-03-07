@@ -1,0 +1,22 @@
+{
+	"browser": true,
+	"camelcase": true,
+	"curly": false,
+	"devel": true,
+	"esversion": 8,
+	"globals": {
+		"chrome": false,
+		"browser": false,
+		"$": false
+	},
+	"immed": true,
+	"jquery": true,
+	"lastsemic": true,
+	"laxbreak": true,
+	"laxcomma": false,
+	"mocha": false,
+	"newcap": true,
+	"strict": false,
+	"undef": true,
+	"unused": false
+}

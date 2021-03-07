@@ -1,0 +1,211 @@
+:root {
+	--button-bg: #7ae3cc;
+	--button-text: #0e0d20;
+	--button-bg-hover: #69eed1;
+}
+
+.hidden {
+	display: none !important;
+}
+
+.align-center {
+	text-align: center;
+}
+
+body {
+	color: var(--popup-text);
+	background: var(--popup-bg);
+	font-family:Helvetica Neue,Helvetica,Arial,メイリオ\, meiryo,ヒラギノ角ゴ pro w3,hiragino kaku gothic pro,sans-serif;
+	margin: 0;
+}
+
+
+body.firefox .no-firefox,
+body.firefox .chrome-only,
+body.chrome .no-chrome,
+body.chrome .firefox-only {
+	display: none;
+	speak: none;
+}
+
+a, a:active, a:visited {
+	color: var(--link-normal);
+	text-decoration: none;
+}
+
+a:hover {
+	color: var(--link-hover);
+}
+
+#content {
+	padding: 16px 12px;
+}
+
+#content > * {
+	margin: 0 0 10px;
+}
+
+#content > *:last-child {
+	margin-bottom: 0;
+}
+
+h1, h2, h3, h4, h5 {
+	font-weight: normal;
+	text-rendering: optimizeLegibility;
+	margin-bottom: .62em;
+}
+
+.button, .sp-choose, .sp-cancel {
+	background: var(--button-bg);
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	color: var(--button-text);
+	display: inline-block;
+	font-family: inherit;
+	font-size: 12px;
+	padding: 0 24px;
+	height: 40px;
+	line-height: 40px;
+	border-radius: 0;
+	cursor: pointer;
+	text-transform: uppercase;
+	font-weight: bold;
+}
+
+.button:hover, .sp-choose:hover {
+	background-color: var(--button-bg-hover);
+}
+
+.button:active, .button:hover, .button:visited, .sp-choose:active, .sp-choose:hover {
+	color: var(--button-text);
+}
+
+
+.button-link, .sp-cancel {
+	margin-right: .5rem;
+	background: transparent !important;
+	color: var(--link-normal);
+	border-color: currentColor;
+}
+.button-link:active, .button-link:hover, .sp-cancel:hover, .sp-cancel:active {
+	color: var(--link-hover);
+}
+
+.input, .sp-input {
+	box-sizing: border-box;
+	padding: 6px;
+	background: transparent;
+	border-top: 0 !important;
+	border-left: 0 !important;
+	border-right: 0 !important;
+	border-style: solid !important;
+	border-bottom-width: 2px !important;
+	border-bottom-color: var(--input-border);
+	font-size: 14px;
+	font-family: sans-serif;
+	color: var(--input-text);
+	max-width: 100%;
+	border-radius: 0;
+}
+
+.input:focus, .sp-input:focus {
+	outline: 0;
+	border-bottom-color: var(--input-border-focus);
+}
+
+.input-short {
+	width: 70px;
+}
+
+.input:disabled, .button:disabled {
+	opacity: .7;
+	cursor: not-allowed;
+}
+
+.block-tab {
+	border: 1px solid var(--block-tab-border);
+	background: var(--popup-bg);
+	padding: 10px;
+}
+
+.field:not([hidden]) {
+	display: flex;
+	width: 100%;
+	flex-flow: row wrap;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.field input,
+.field select,
+.field .sp-replacer {
+	margin: 0 .5em;
+}
+
+.field input:first-child,
+.field select:first-child,
+.field .sp-replacer:first-child {
+	margin-left: 0;
+}
+
+.field input:last-child,
+.field select:last-child,
+.field .sp-replacer:last-child {
+	margin-right: 0;
+}
+
+.field:not(:last-child) {
+	margin-bottom: 10px;
+}
+.field select, .field select option {
+	background-color: var(--popup-bg);
+	color: var(--popup-text);
+}
+
+.fieldlabel {
+	flex: 0 0 100%;
+	margin-top: .3em;
+	font-style: italic;
+}
+
+.field-pre {
+	margin: 5px 0 10px;
+	font-size: 1.1em;
+}
+
+.field .error {
+	flex: 0 0 100%;
+	margin: .3em 0 0 0;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	--padding: .6em;
+	padding: var(--padding);
+	list-style: none;
+	box-sizing: border-box;
+}
+.field .error li:not(:last-child) {
+	margin-bottom: var(--padding);
+}
+
+fieldset {
+	padding: 1em;
+	border: 1px solid;
+}
+
+fieldset legend {
+	padding: 0 .5em;
+	border: inherit;
+}
+
+button, select {
+	text-transform: none;
+}
+
+footer {
+	color: var(--footer-text);
+	padding: 1em;
+}
+
+footer p {
+	margin: 0;
+}

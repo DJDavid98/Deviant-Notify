@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Popup - Deviant-Notify</title>
+	<link rel="stylesheet" href="css/global.css">
+	<link rel="stylesheet" href="css/popup.css">
+</head>
+<body class="align-center">
+
+<div id="popup-icons">
+	<div id="message-container" class="icon-link">
+		<span id="message-count" class="icon-count"></span>
+	</div>
+	<div id="notif-container" class="icon-link">
+		<span id="notif-count" class="icon-count"></span>
+	</div>
+</div>
+
+<div id="container">
+	<div id="content">
+		<p id="sign-in-status">Loading&hellip;</p>
+	</div>
+</div>
+
+<footer>
+	<p>Deviant-Notify <span id="version"></span> &bull; <a id="options" href="#options">Options</a>
+	</p>
+
+	<div id="credits">
+		<p>
+			Notification sound:
+			<a href="https://github.com/kav2k/dAnotifier/blob/master/src/audio/notify.ogg" target="_blank">notify.ogg</a>
+			from
+			<a href="https://github.com/kav2k/dAnotifier" target="_blank">kav2k/dAnotifier</a>
+		</p>
+		<p>All icons &copy; DeviantArt</p>
+		<p>Settings color picker: <a
+			href="https://bgrins.github.io/spectrum/"
+			target="_blank"
+		>Spectrum</a></p>
+	</div>
+</footer>
+
+<script src="js/vendor/jquery-3.3.1.slim.min.js"></script>
+<script src="js/pages/popup.page.js" type="module"></script>
+</body>
+</html>

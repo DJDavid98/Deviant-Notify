@@ -1,0 +1,19 @@
+:root {
+	--popup-bg: #fefefe;
+	--popup-text: #333;
+	--icon-bg-normal: #FFFDFD;
+	--icon-bg-hover: #FFFDFD;
+	--icon-border: #dbdbe2;
+	--icon-text: #fff;
+	--icon-color: #606070;
+	--icon-hover-color: #0a0a18;
+	--footer-text: #999;
+	--link-normal: #0e0d20;
+	--link-hover: #00d38f;
+	--block-tab-border: #daf1da;
+	--input-text: #0e0d20;
+	--input-border: #5d5d6c;
+	--input-border-focus: #00d38f;
+	--error-bg: #f0cfcb;
+	--error-border: #e2a39b;
+}
