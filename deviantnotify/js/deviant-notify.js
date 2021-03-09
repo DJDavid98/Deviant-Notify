@@ -1,27 +1,43 @@
-(function() {
+(() => {
+  // Avoid re-sending data from a cached page
+  if (!!window.performance && window.performance.getEntriesByType('navigation')[0].type === 'back_forward') return;
 
-	'use strict';
+  const isFirefox = 'browser' in window;
+  const qs = (s) => document.querySelector(s);
+  const scheduleUpdate = () => {
+    // Update auto theme setting value on page load
+    const callback = (resp) => {
+      if (resp.onlyDomain !== window.location.host) return;
 
-	// Avoid re-sending data from a cached page
-	if (!!window.performance && window.performance.getEntriesByType('navigation')[0].type === 'back_forward')
-		return;
+      const data = {
+        bodyClass: qs('body').className,
+      };
 
-	const isFirefox = 'browser' in window;
-	const qs = s => document.querySelector(s);
+      chrome.runtime.sendMessage({ action: 'onSiteUpdate', data });
+    };
 
-	const callback = resp => {
-		if (resp.onlyDomain !== location.host)
-			return;
+    if (!isFirefox) {
+      chrome.runtime.sendMessage({ action: 'getSelectors' }, callback);
+    } else {
+      browser.runtime.sendMessage({ action: 'getSelectors' }).then(callback);
+    }
+  };
 
-		const data = {
-			theme: qs('body').className,
-		};
+  window.requestAnimationFrame(scheduleUpdate);
 
-		chrome.runtime.sendMessage({ action: 'onSiteUpdate', data });
-	};
+  const delegateListener = (el, elementSelector, eventName, handler) => {
+    el.addEventListener(eventName, (e) => {
+      // loop parent nodes from the target to the delegation node
+      for (let { target } = e; target && target !== el; target = target.parentNode) {
+        if (target.matches(elementSelector)) {
+          handler(e);
+          break;
+        }
+      }
+    }, false);
+  };
 
-	if (!isFirefox)
-		chrome.runtime.sendMessage({ action: 'getSelectors' }, callback);
-	else browser.runtime.sendMessage({ action: 'getSelectors' }).then(callback);
-
+  // Schedule updates to the 'auto' theme option when changed on-site
+  const userMenu = document.getElementById('site-header-user-menu');
+  delegateListener(userMenu, 'span[title$="Theme"]', 'click', scheduleUpdate);
 })();

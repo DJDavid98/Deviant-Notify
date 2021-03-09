@@ -3,7 +3,7 @@
  * @return {Document}
  */
 export function parseHtml(html) {
-	return (new DOMParser()).parseFromString(html, 'text/html');
+  return (new DOMParser()).parseFromString(html, 'text/html');
 }
 
 /**
@@ -12,8 +12,8 @@ export function parseHtml(html) {
  * @return {string}
  */
 export function plural(number, word) {
-	const suffix = number !== 1 ? 's' : '';
-	return `${number} ${word + suffix}`;
+  const suffix = number !== 1 ? 's' : '';
+  return `${number} ${word + suffix}`;
 }
 
 /**
@@ -21,13 +21,15 @@ export function plural(number, word) {
  * @return {string}
  */
 export function shortenCount(cnt) {
-	return cnt < 1e4
-		? cnt.toString()
-		: (
-			cnt < 1e6
-				? Math.round(cnt / 1e3) + 'k'
-				: Math.round(cnt / 1e6) + 'm'
-		);
+  if (cnt < 1e4) {
+    return cnt.toString();
+  }
+
+  return (
+    cnt < 1e6
+      ? `${Math.round(cnt / 1e3)}k`
+      : `${Math.round(cnt / 1e6)}m`
+  );
 }
 
 /**
@@ -39,23 +41,21 @@ export function shortenCount(cnt) {
  * @return {number} ranging from 0 to 255 (inclusive)
  */
 export function yiq(r, g, b) {
-	return ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return ((r * 299) + (g * 587) + (b * 114)) / 1000;
 }
 
 /**
  * @param {string} url
  */
 export function createTab(url) {
-	chrome.windows.getCurrent(currentWindow => {
-		if (currentWindow != null){
-			chrome.tabs.create({ url });
-		}
-		else {
-			return chrome.windows.create({
-				url,
-				'focused': true,
-			});
-		}
-	});
+  chrome.windows.getCurrent((currentWindow) => {
+    if (currentWindow != null) {
+      chrome.tabs.create({ url });
+    } else {
+      chrome.windows.create({
+        url,
+        focused: true,
+      });
+    }
+  });
 }
-

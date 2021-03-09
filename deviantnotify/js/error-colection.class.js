@@ -1,23 +1,40 @@
 export class ErrorCollection {
-	constructor() {
-		this._collection = {};
-		this.count = 0;
-	}
+  constructor() {
+    /**
+     * @type {Record<string, string[]>}
+     * @private
+     */
+    this.collection = {};
+    /**
+     * @type {number}
+     * @private
+     */
+    this.totalCount = 0;
+  }
 
-	add(key, message) {
-		if (typeof this._collection[key] === 'undefined')
-			this._collection[key] = [];
-		if ($.isArray(message)){
-			this._collection[key] = this._collection[key].concat(message);
-			this.count += message.length;
-		}
-		else {
-			this._collection[key].push(message);
-			this.count++;
-		}
-	}
+  get count() {
+    return this.totalCount;
+  }
 
-	getAll() {
-		return this._collection;
-	}
+  /**
+   * @param {string} key
+   * @param {string|string[]} message
+   */
+  add(key, message) {
+    if (typeof this.collection[key] === 'undefined') this.collection[key] = [];
+    if (Array.isArray(message)) {
+      this.collection[key] = [...this.collection[key], ...message];
+      this.totalCount += message.length;
+    } else {
+      this.collection[key].push(message);
+      this.totalCount++;
+    }
+  }
+
+  /**
+   * @return {Record<string, string[]>}
+   */
+  getAll() {
+    return this.collection;
+  }
 }
