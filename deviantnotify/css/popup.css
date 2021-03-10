@@ -37,6 +37,10 @@
 	cursor: pointer;
 }
 
+#popup-icons .icon-link.inactive:not(:hover) {
+  opacity: .75;
+}
+
 #popup-icons .icon-image {
 	height: 1em;
 	width: 1em;
@@ -53,12 +57,10 @@
 	display: none;
 }
 
-#popup-icons .icon-image path,
-#notif-container .icon-image path {
+#popup-icons .icon-image path {
 	fill: var(--icon-color);
 }
-#popup-icons .icon-link:hover .icon-image path,
-#notif-container .icon-link:hover .icon-image path {
+#popup-icons .icon-link:hover .icon-image path {
 	fill: var(--icon-hover-color);
 }
 

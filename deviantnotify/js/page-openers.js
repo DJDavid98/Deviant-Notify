@@ -10,3 +10,7 @@ export function openNotificationsPage() {
 export function openMessagesPage() {
   createTab(makeURLFromPath(LINKS.messages, singleton.options));
 }
+
+export function openWatchPage() {
+  createTab(makeURLFromPath(LINKS.watch, singleton.options));
+}

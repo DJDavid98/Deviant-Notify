@@ -9,11 +9,13 @@ export function parseHtml(html) {
 /**
  * @param {number} number
  * @param {string} word
+ * @param {boolean} prepend
  * @return {string}
  */
-export function plural(number, word) {
+export function plural(number, word, prepend = true) {
   const suffix = number !== 1 ? 's' : '';
-  return `${number} ${word + suffix}`;
+  const justTheWord = word + suffix;
+  return prepend ? `${number} ${justTheWord}` : justTheWord;
 }
 
 /**

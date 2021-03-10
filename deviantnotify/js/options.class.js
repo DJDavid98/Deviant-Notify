@@ -1,4 +1,10 @@
-import { DEFAULT_OPTIONS, VALID_DOMAINS, VALID_ICON_STYLES, VALID_THEMES } from './common.js';
+import {
+  DEFAULT_OPTIONS,
+  VALID_DOMAINS,
+  VALID_ICON_STYLES,
+  VALID_THEMES,
+  VALID_WATCH_MESSAGE_TYPES,
+} from './common.js';
 import { yiq } from './utils.js';
 import { checkDomainPermissions } from './domain-permissions.js';
 
@@ -99,6 +105,18 @@ export class Options {
             errors.push('The chat icon style is invalid');
           }
           break;
+        case 'watchIconStyle':
+          if (typeof value !== 'string' || VALID_ICON_STYLES.watch.indexOf(value) === -1) {
+            errors.push('The watch icon style is invalid');
+          }
+          break;
+        case 'watchDisabled':
+          if (!Array.isArray(value)) {
+            errors.push('The disabled watch message types must be an array');
+          } else {
+            value = value.filter((el) => VALID_WATCH_MESSAGE_TYPES.includes(el));
+          }
+          break;
         case 'notifTimeout':
           value = parseInt(value, 10);
           if (Number.isNaN(value) || !Number.isFinite(value)) {
@@ -170,10 +188,10 @@ export class Options {
         this.scope.extension.setBadgeColor();
         break;
       case 'notifEnabled':
-        if (value === false) this.scope.extension.clearNotif();
+        if (value === false) this.scope.notifier.clearNotif();
         break;
       case 'notifTimeout':
-        if (value !== 0) this.scope.extension.setNotifTimeout();
+        if (value !== 0) this.scope.notifier.setNotifTimeout();
     }
   }
 

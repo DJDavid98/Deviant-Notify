@@ -50,17 +50,15 @@ export function getCookieByName(name) {
 }
 
 /**
- * @return {Promise<number>}
+ * @typedef FeedbackApiResponse
+ * @property {{ total: number }} counts
  */
-async function getNotificationCount() {
-  const path = `${LINKS.feedbackApi}?limit=0`;
-  const resp = await request(path, { redirect: 'error' })
-    .then((r) => r.json())
-    .catch((e) => {
-      console.error('Failed to retrieve notification count, see the error below');
-      console.error(e);
-    });
 
+/**
+ * @param {FeedbackApiResponse} resp
+ * @return {number}
+ */
+function getTotalFromFeedbackApiResponse(resp) {
   if (typeof resp === 'object') {
     if (typeof resp.counts === 'object') {
       if (typeof resp.counts.total === 'number') {
@@ -70,6 +68,24 @@ async function getNotificationCount() {
   }
 
   return 0;
+}
+
+/**
+ * Retrieve the number of non-dismissed items in the watch notifications feed
+ * @return {Promise<number>}
+ */
+async function getNotificationCount() {
+  const path = `${LINKS.feedbackApi}?limit=0`;
+
+  /** @type {FeedbackApiResponse} */
+  const resp = await request(path, { redirect: 'error' })
+    .then((r) => r.json())
+    .catch((e) => {
+      console.error('Failed to retrieve notification count, see the error below');
+      console.error(e);
+    });
+
+  return getTotalFromFeedbackApiResponse(resp);
 }
 
 /**
@@ -103,6 +119,42 @@ async function getMessageCount(reqUtils) {
 }
 
 /**
+ * Retrieve the number of non-dismissed items in the watch notifications feed
+ * @param {Options} options
+ * @return {Promise<number>}
+ */
+async function getWatchCount(options) {
+  const disabledTypes = options.get('watchDisabled');
+  let messageTypes = [
+    'groupDeviations',
+    'journals',
+    'forums',
+    'polls',
+    'status',
+    'commissions',
+    'misc',
+  ];
+  if (disabledTypes && messageTypes.length > 0) {
+    messageTypes = messageTypes.filter((type) => !disabledTypes.includes(type));
+  }
+
+  /** @type {FeedbackApiResponse[]} */
+  const responses = await Promise.all(messageTypes.map((type) => (
+    request(`${LINKS.watchApi}?limit=0&messagetype=${type}&stacked=false`)
+      .then((r) => r.json())
+  )))
+    .catch((e) => {
+      console.error('Failed to retrieve watch count, see the error below');
+      console.error(e);
+    });
+
+  return responses.reduce(
+    (total, response) => total + getTotalFromFeedbackApiResponse(response),
+    0,
+  );
+}
+
+/**
  * @param {ExtensionScope} scope
  */
 export function checkSiteData(scope) {
@@ -133,18 +185,21 @@ export function checkSiteData(scope) {
 
       let notifCount = 0;
       let messageCount = 0;
+      let watchCount = 0;
       try {
-        [notifCount, messageCount] = await Promise.all([
+        [notifCount, messageCount, watchCount] = await Promise.all([
           getNotificationCount(),
           getMessageCount(scope.reqUtils),
+          getWatchCount(scope.options),
         ]);
       } catch (e) {
         console.error('Failed to get message counts', e);
       }
 
       // Placeholder
-      scope.extension.setNotifs(notifCount);
-      scope.extension.setMessages(messageCount);
+      scope.extension.setNotifCount(notifCount);
+      scope.extension.setMessageCount(messageCount);
+      scope.extension.setWatchCount(watchCount);
       scope.extension.updateBadgeCounter();
       scope.extension.setSignedIn(true);
 

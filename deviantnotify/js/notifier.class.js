@@ -8,6 +8,21 @@ import { plural } from './utils.js';
  * @property {string} title
  * @property {string} message
  */
+/**
+ * @typedef ButtonIndexes
+ * @property {number} notifs
+ * @property {number} messages
+ * @property {number} watch
+ * @property {number} dismiss
+ */
+
+/** @type {ButtonIndexes} */
+const DEFAULT_BUTTON_INDEXES = {
+  notifs: -1,
+  messages: -1,
+  watch: -1,
+  dismiss: -1,
+};
 
 export class Notifier {
   /**
@@ -20,14 +35,11 @@ export class Notifier {
      */
     this.scope = scope;
     /**
-     * @type {Record<string, {notifs: number, messages: number}>}}
+     * @type {Record<string, ButtonIndexes>}}
      * @private
      */
     this.buttonIndexes = {
-      [NOTIF_ID]: {
-        notifs: -1,
-        messages: -1,
-      },
+      [NOTIF_ID]: DEFAULT_BUTTON_INDEXES,
     };
     /**
      * Record that maps a timeout ID to each notification ID
@@ -50,30 +62,38 @@ export class Notifier {
   buildNotifParams(unread, id = NOTIF_ID) {
     const buttons = [];
     const hasNotifs = unread.notifs > 0;
+    const hasMessages = unread.messages > 0;
+    const hasWatch = unread.watch > 0;
     const displayIcons = this.scope.options.get('notifIcons');
     const bellStyle = this.scope.options.get('bellIconStyle');
     const chatStyle = this.scope.options.get('chatIconStyle');
+    const watchStyle = this.scope.options.get('watchIconStyle');
 
-    this.buttonIndexes[id] = {
-      notifs: -1,
-      messages: -1,
-    };
+    this.buttonIndexes[id] = { ...DEFAULT_BUTTON_INDEXES };
+    let currentIndex = 0;
     if (hasNotifs) {
       buttons.push({
         title: `View ${plural(unread.notifs, 'Notification')}`,
         iconUrl: displayIcons ? (isFirefox ? '🔔' : `img/bell-${bellStyle}.svg`) : undefined,
       });
-      this.buttonIndexes[id].notifs = 0;
+      this.buttonIndexes[id].notifs = currentIndex++;
     }
-    if (unread.messages > 0) {
+    if (hasMessages) {
       buttons.push({
         title: `View ${plural(unread.messages, 'Note')}`,
         iconUrl: displayIcons ? (isFirefox ? '📝' : `img/chat-${chatStyle}.svg`) : undefined,
       });
-      this.buttonIndexes[id].messages = hasNotifs ? 1 : 0;
+      this.buttonIndexes[id].messages = currentIndex++;
     }
-    const persist = this.scope.options.get('notifTimeout') === 0;
+    if (hasWatch) {
+      buttons.push({
+        title: `View ${plural(unread.watch, 'Watched Item')}`,
+        iconUrl: displayIcons ? (isFirefox ? '🥽' : `img/watch-${watchStyle}.svg`) : undefined,
+      });
+      this.buttonIndexes[id].watch = currentIndex++;
+    }
 
+    const persist = this.scope.options.get('notifTimeout') === 0;
     const params = {
       type: 'basic',
       iconUrl: 'img/notif-128.png',
@@ -82,17 +102,38 @@ export class Notifier {
     };
 
     if (!isFirefox) {
-      params.buttons = buttons;
+      // Chrome is limited to a maximum of two buttons
+      if (buttons.length > 2) {
+        // If there are too many, replace them with a more verbose message & simple dismiss action instead
+        params.message += Notifier.constructFirefoxMessage(buttons, false).replace(/\n\n/g, '\n');
+        params.buttons = [{ title: 'Dismiss' }];
+        this.buttonIndexes[id] = {
+          ...DEFAULT_BUTTON_INDEXES,
+          dismiss: 0,
+        };
+      } else {
+        params.buttons = buttons;
+      }
       params.requireInteraction = persist;
       params.silent = true;
     } else {
-      params.message += ':\n';
-      buttons.forEach((btn) => {
-        params.message += `\n${displayIcons ? `${btn.iconUrl}   ` : ''}${btn.title.replace(/^View /, '')}`;
-      });
+      params.message += Notifier.constructFirefoxMessage(buttons, displayIcons);
     }
 
     return params;
+  }
+
+  /**
+   * @param {Array<{ title: string, iconUrl: string | undefined }>}buttons
+   * @param {boolean} displayIcons
+   * @return {string}
+   */
+  static constructFirefoxMessage(buttons, displayIcons) {
+    let restText = ':\n';
+    buttons.forEach((btn) => {
+      restText += `\n${displayIcons ? `${btn.iconUrl}   ` : ''}${btn.title.replace(/^View /, '')}`;
+    });
+    return restText;
   }
 
   createNotif(params, id = NOTIF_ID) {
@@ -129,6 +170,10 @@ export class Notifier {
     }
   }
 
+  /**
+   * @param {string} id
+   * @return {ButtonIndexes}
+   */
   getButtonIndexes(id = NOTIF_ID) {
     return this.buttonIndexes[id];
   }
@@ -142,12 +187,13 @@ export class Notifier {
    *
    * @param {UnreadCounts} unread
    * @param {string} id
+   * @param {Options} prefs
    */
-  show(unread, id = NOTIF_ID) {
-    if (this.scope.options.get('notifSound')) {
+  show(unread, id = NOTIF_ID, prefs = this.scope.options) {
+    if (prefs.get('notifSound')) {
       this.playSound();
     }
-    if (this.scope.options.get('notifEnabled')) {
+    if (prefs.get('notifEnabled')) {
       this.clearTimeout(id);
 
       const params = this.buildNotifParams(unread, id);

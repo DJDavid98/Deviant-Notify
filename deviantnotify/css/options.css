@@ -68,6 +68,31 @@
 	border-color: var(--input-border-focus);
 }
 
+#watch-enabled {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+#watch-enabled .col-auto {
+  flex: 0 0 auto;
+}
+
+#watch-enabled .col {
+  flex: 1 1 auto;
+  padding: 0 1rem;
+}
+
+#enabledWatchTypes {
+  height: 11rem;
+  margin-bottom: 1rem;
+}
+
+p {
+  margin-top: 0;
+}
+
 .flex-actions {
 	display: flex;
 	margin-top: 1.2em;

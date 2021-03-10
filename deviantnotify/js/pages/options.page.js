@@ -1,9 +1,20 @@
 import { plural } from '../utils.js';
 import { checkDomainPermissions, requestDomainPermission } from '../domain-permissions.js';
+import { isFirefox } from '../common.js';
+import { isMac } from '../is-mac.js';
 
-const isFirefox = 'browser' in window;
-$('body')
-  .addClass(isFirefox ? 'firefox' : 'chrome');
+$('body').addClass(isFirefox ? 'firefox' : 'chrome');
+
+const watchMessageTypeReadableNames = {
+  deviations: 'Deviations',
+  groupDeviations: 'Group Deviations',
+  journals: 'Posts',
+  forums: 'Forums',
+  polls: 'Polls',
+  status: 'Status Updates',
+  commissions: 'Commissions',
+  misc: 'Miscellaneous',
+};
 
 // Convert .serializeArray() result to object
 $.fn.mkData = function mkData(obj) {
@@ -30,6 +41,14 @@ $.fn.mkData = function mkData(obj) {
           break;
       }
       data[el.name] = value;
+    } else if (el.name === 'watchEnabled') {
+      const disabledOptions = [];
+      $(el).find('option').each((i, opt) => {
+        if (!opt.selected) {
+          disabledOptions.push(opt.value);
+        }
+      });
+      data.watchDisabled = disabledOptions;
     } else {
       const tempData = $(el)
         .serializeArray();
@@ -82,9 +101,8 @@ const $notifTimeout = $('#notifTimeout');
 const $notifIcons = $('#notifIcons');
 const $notifIconStyleSection = $('#notifIconStyleSection');
 const $theme = $('#theme');
-const $themeLink = $(document.createElement('link'))
-  .attr('rel', 'stylesheet')
-  .appendTo('head');
+const $enabledWatchTypes = $('#enabledWatchTypes');
+const $themeLink = $(document.createElement('link')).attr('rel', 'stylesheet').appendTo('head');
 
 function getOptionsData() {
   chrome.runtime.sendMessage({ action: 'getOptionsData' }, (response) => {
@@ -165,6 +183,16 @@ function getOptionsData() {
       });
       $notifIconStyleSection.append($iconSelect);
     });
+    $enabledWatchTypes.empty();
+    const { watchDisabled = [] } = response.prefs;
+    response.validWatchMessageTypes.forEach((type) => {
+      $enabledWatchTypes.append(
+        $(document.createElement('option'))
+          .attr('value', type)
+          .prop('selected', !watchDisabled.includes(type))
+          .text(watchMessageTypeReadableNames[type]),
+      );
+    });
   });
 }
 
@@ -187,8 +215,7 @@ function updateOptions(data) {
   }, (response) => {
     sub(true);
 
-    $form.find('.error')
-      .remove();
+    $form.find('.error').remove();
 
     if (response.status) {
       getOptionsData();
@@ -210,12 +237,15 @@ function updateOptions(data) {
   });
 }
 
+const $ctrlKeys = $('.kbd-ctrl');
+$ctrlKeys.text(isMac ? '\u2318' : 'Ctrl');
+
 const getFormData = () => $form.mkData();
 
 $updateInterval.on('change', () => {
   const value = parseInt($updateInterval.val(), 10);
   $updateInterval.next()
-    .text(plural(value, 'minute'));
+    .text(plural(value, 'minute', false));
 });
 
 $form.on('submit', (e) => {

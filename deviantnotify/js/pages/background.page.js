@@ -4,7 +4,7 @@ import { Options } from '../options.class.js';
 import { singleton } from '../singleton.js';
 import { makeURLFromPath } from '../request-utils.js';
 import { checkSiteData } from '../data-fetching.js';
-import { openMessagesPage, openNotificationsPage } from '../page-openers.js';
+import { openMessagesPage, openNotificationsPage, openWatchPage } from '../page-openers.js';
 
 singleton.options.loadUserOptions()
   .then(() => {
@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener((req, sender, resp) => {
               errors: errors.getAll(),
             });
           } else {
-            singleton.options.saveOptions();
+            singleton.options.saveOptions(true);
             resp({ status: true });
           }
         });
@@ -60,15 +60,16 @@ chrome.runtime.onMessage.addListener((req, sender, resp) => {
       break;
     case 'testMessage': {
       const id = `${NOTIF_ID}-Test`;
-      singleton.extension.clearNotif(id)
+      singleton.notifier.clearNotif(id)
         .then(() => {
           const prefs = new Options(singleton, req.data);
-          const MAX = 256;
+          const randomMax = 256;
           const unread = {
-            notifs: Math.round(Math.random() * MAX),
-            messages: Math.round(Math.random() * MAX),
+            notifs: Math.round(Math.random() * randomMax),
+            messages: Math.round(Math.random() * randomMax),
+            watch: Math.round(Math.random() * randomMax),
           };
-          singleton.extension.notifyUser(prefs, unread, id);
+          singleton.notifier.show(unread, id, prefs);
         });
     }
       break;
@@ -84,19 +85,25 @@ chrome.runtime.onMessage.addListener((req, sender, resp) => {
     case 'openMessagesPage':
       openMessagesPage();
       break;
+    case 'openWatchPage':
+      openWatchPage();
+      break;
     default:
       throw new Error(`No handler defined for action ${req.action}`);
   }
 });
 
 chrome.notifications.onButtonClicked.addListener((notifId, btnIndex) => {
-  const { notifs, messages } = singleton.extension.getButtonIndexes(notifId);
+  const { notifs, messages, watch } = singleton.notifier.getButtonIndexes(notifId);
   switch (btnIndex) {
     case notifs:
       openNotificationsPage();
       break;
     case messages:
       openMessagesPage();
+      break;
+    case watch:
+      openWatchPage();
       break;
   }
   chrome.notifications.clear(notifId);
@@ -105,6 +112,6 @@ chrome.notifications.onButtonClicked.addListener((notifId, btnIndex) => {
 // Set a click handler for Firefox notifications
 if (isFirefox) {
   browser.notifications.onClicked.addListener((notifId) => {
-    browser.notifications.clear(notifId);
+    singleton.notifier.clearNotif(notifId);
   });
 }

@@ -1,4 +1,10 @@
-import { NOTIF_ID, VALID_DOMAINS, VALID_ICON_STYLES, VALID_THEMES } from './common.js';
+import {
+  NOTIF_ID,
+  VALID_WATCH_MESSAGE_TYPES,
+  VALID_DOMAINS,
+  VALID_ICON_STYLES,
+  VALID_THEMES,
+} from './common.js';
 import { shortenCount } from './utils.js';
 import { checkSiteData } from './data-fetching.js';
 
@@ -6,7 +12,7 @@ import { checkSiteData } from './data-fetching.js';
  * @typedef UnreadCounts
  * @property {number} notifs
  * @property {number} messages
- * @property {number} [watch] TODO Implement
+ * @property {number} watch
  */
 
 const UNKNOWN_BADGE_TEXT = '?';
@@ -28,6 +34,7 @@ export class Extension {
     this.unread = {
       notifs: 0,
       messages: 0,
+      watch: 0,
     };
     /**
      * @type {{signedIn: boolean, autoTheme: string, username: string}}
@@ -43,15 +50,22 @@ export class Extension {
   /**
    * @param {number|string} count
    */
-  setNotifs(count) {
+  setNotifCount(count) {
     this.unread.notifs = count === '' ? 0 : parseInt(count, 10);
   }
 
   /**
    * @param {number|string} count
    */
-  setMessages(count) {
+  setMessageCount(count) {
     this.unread.messages = count === '' ? 0 : parseInt(count, 10);
+  }
+
+  /**
+   * @param {number|string} count
+   */
+  setWatchCount(count) {
+    this.unread.watch = count === '' ? 0 : parseInt(count, 10);
   }
 
   /**
@@ -117,8 +131,7 @@ export class Extension {
 
   getPopupData() {
     return {
-      notifs: this.unread.notifs,
-      messages: this.unread.messages,
+      ...this.unread,
       signedIn: this.meta.signedIn,
       username: this.meta.username,
       version: chrome.runtime.getManifest().version,
@@ -135,6 +148,7 @@ export class Extension {
       validDomains: VALID_DOMAINS,
       validThemes: VALID_THEMES,
       validIconStyles: VALID_ICON_STYLES,
+      validWatchMessageTypes: VALID_WATCH_MESSAGE_TYPES,
     };
   }
 
@@ -152,7 +166,7 @@ export class Extension {
    * Updates the count on the extension icon and sends a notification if it increased
    */
   updateBadgeCounter() {
-    const value = this.unread.notifs + this.unread.messages;
+    const value = Object.keys(this.unread).reduce((total, key) => total + this.unread[key], 0);
     const newText = value === 0 ? '' : shortenCount(value);
     chrome.browserAction.getBadgeText({}, (currentText) => {
       if (currentText === newText) return;

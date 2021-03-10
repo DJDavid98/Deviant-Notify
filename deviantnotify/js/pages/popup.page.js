@@ -17,22 +17,24 @@ const $signInStatus = $('#sign-in-status');
 const $version = $('#version');
 const $notifCount = $('#notif-count');
 const $messageCount = $('#message-count');
+const $watchCount = $('#watch-count');
 const $notifContainer = $('#notif-container');
 const $messageContainer = $('#message-container');
+const $watchContainer = $('#watch-container');
 const $options = $('#options');
 
-$notifContainer.prepend($(icons.bell)
-  .addClass('icon-image'))
-  .on('click', (e) => {
-    e.preventDefault();
-    chrome.runtime.sendMessage({ action: 'openNotifsPage' });
-  });
-$messageContainer.prepend($(icons.chat)
-  .addClass('icon-image'))
-  .on('click', (e) => {
-    e.preventDefault();
-    chrome.runtime.sendMessage({ action: 'openMessagesPage' });
-  });
+$notifContainer.prepend($(icons.bell).addClass('icon-image')).on('click', (e) => {
+  e.preventDefault();
+  chrome.runtime.sendMessage({ action: 'openNotifsPage' });
+});
+$messageContainer.prepend($(icons.chat).addClass('icon-image')).on('click', (e) => {
+  e.preventDefault();
+  chrome.runtime.sendMessage({ action: 'openMessagesPage' });
+});
+$watchContainer.prepend($(icons.watch).addClass('icon-image')).on('click', (e) => {
+  e.preventDefault();
+  chrome.runtime.sendMessage({ action: 'openWatchPage' });
+});
 $options.on('click', (e) => {
   e.preventDefault();
   chrome.runtime.openOptionsPage();
@@ -62,6 +64,12 @@ chrome.runtime.sendMessage({ action: 'getPopupData' }, (response) => {
       $messageCount.empty();
     } else {
       $messageCount.text(response.messages);
+    }
+    if (response.watch === 0) {
+      $watchContainer.addClass('inactive');
+      $watchCount.empty();
+    } else {
+      $watchCount.text(response.watch);
     }
   } else {
     $signInStatus.html('<button id="sign-in" class="button">Sign in</button>');

@@ -52,11 +52,28 @@
 
 				<div class="field">
 					<input type="checkbox" name="notifSound" id="notifSound" value="true">
-					<label for="notifSound">Play a sound when the total count increases</label>
+					<label for="notifSound">Play a sound when the total item counter increases</label>
 				</div>
+
+        <h2>Watch notifications</h2>
+        <div id="watch-enabled">
+          <div class="col-auto">
+            <select id="enabledWatchTypes" multiple name="watchEnabled"></select>
+          </div>
+          <div class="col">
+            <p>Here you can choose which types of watch notifications to include in the count.</p>
+            <p>
+              Hold down <kbd class="kbd-ctrl"></kbd> to toggle individual items.
+              Only highlighted items will be checked and become part of the total watch item count.
+            </p>
+            <p>Tracking of watched items will be disabled entirely if no types are selected.</p>
+          </div>
+        </div>
 
 				<fieldset>
 					<legend>Desktop notification options</legend>
+
+          <p>The desktop notification is displayed whenever the number of total items increases.</p>
 
 					<div class="field">
 						<input type="checkbox" name="notifEnabled" id="notifEnabled" value="true">
@@ -82,9 +99,16 @@
 
 					<div class="field">
 						<input type="checkbox" name="notifIcons" id="notifIcons" value="true">
-						<label for="notifIcons">Display <span class="no-firefox">button</span> icons</label>
+						<label for="notifIcons">
+						  Display
+						  <span class="no-firefox">button icons</span>
+						  <span class="no-chrome">emoji</span>
+						</label>
 						<div class="fieldlabel">
-							This lets you turn off the icons inside the notifications.
+							This lets you turn off the
+              <span class="no-firefox">icons</span>
+						  <span class="no-chrome">emoji</span>
+							inside the notifications.
 						</div>
 					</div>
 
