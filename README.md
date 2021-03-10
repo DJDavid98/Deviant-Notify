@@ -27,7 +27,7 @@ This extension is currently very basic compared to any previously existing ones 
  * the total number of items in your [watch feed] (this can be filtered by type)
  * all items in your [notifications feed]
 
-For the two feed types, currently all items which have not beed removed by ressing `X` will become part of the total count.
+For the two feed types, currently all items which have not been removed by pressing `X` will become part of the total count.
 
 In the future I would like to introduce the ability to filter some types of messages from the notification count, as well as to include notifications for group messages, but for now I wanted to get something out the door ASAP. It is unlikely that I will be including any previews of the notification items themselves. The logic for detecting new items is also very basic for now, but I've already received suggestions on how it could be improved in the future.
 
