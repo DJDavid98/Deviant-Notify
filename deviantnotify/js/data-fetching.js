@@ -126,7 +126,7 @@ async function getMessageCount(reqUtils) {
 async function getWatchCount(options) {
   const disabledTypes = options.get('watchDisabled');
   let messageTypes = [...VALID_WATCH_MESSAGE_TYPES];
-  if (disabledTypes && messageTypes.length > 0) {
+  if (disabledTypes && disabledTypes.length > 0) {
     messageTypes = messageTypes.filter((type) => !disabledTypes.includes(type));
   }
 
