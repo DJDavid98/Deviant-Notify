@@ -1,4 +1,4 @@
-import { COOKIE_URL, isFirefox, LINKS } from './common.js';
+import { COOKIE_URL, isFirefox, LINKS, VALID_WATCH_MESSAGE_TYPES } from './common.js';
 import { parseHtml } from './utils.js';
 
 /**
@@ -125,15 +125,7 @@ async function getMessageCount(reqUtils) {
  */
 async function getWatchCount(options) {
   const disabledTypes = options.get('watchDisabled');
-  let messageTypes = [
-    'groupDeviations',
-    'journals',
-    'forums',
-    'polls',
-    'status',
-    'commissions',
-    'misc',
-  ];
+  let messageTypes = [...VALID_WATCH_MESSAGE_TYPES];
   if (disabledTypes && messageTypes.length > 0) {
     messageTypes = messageTypes.filter((type) => !disabledTypes.includes(type));
   }
