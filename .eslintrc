@@ -1,23 +1,38 @@
 {
+  "root": true,
   "env": {
     "browser": true,
-    "es2021": true
+    "es6": true
   },
   "extends": [
-    "airbnb-base"
+    "airbnb-base",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 12,
+    "project": "./tsconfig.json",
+    "ecmaVersion": 2019,
     "sourceType": "module"
   },
   "plugins": [
-    "import-newlines"
+    "react",
+    "react-hooks",
+    "import-newlines",
+    "@typescript-eslint"
   ],
   "rules": {
     "import/prefer-default-export": "off",
+    "import/no-unresolved": "off",
     "import/extensions": [
       "error",
-      "always"
+      "always",
+      {
+        "js": "ignorePackages",
+        "ts": "never"
+      }
     ],
     "no-console": [
       "error",
@@ -48,11 +63,63 @@
         "minProperties": 5,
         "consistent": true
       }
+    ],
+    "implicit-arrow-linebreak": "off",
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": "error",
+    "no-useless-constructor": "off",
+    "@typescript-eslint/no-useless-constructor": "error",
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "error",
+    "react/no-unescaped-entities": [
+      "error",
+      {
+        "forbid": [
+          ">",
+          "}"
+        ]
+      }
+    ],
+    "react/jsx-fragments": [
+      "error",
+      "element"
+    ],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "error",
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": "error",
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [
+          ".tsx"
+        ]
+      }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "name": "preact/hooks",
+        "message": "Import from the src/vendors/preact.ts file instead"
+      },
+      {
+        "name": "preact",
+        "importNames": [
+          "Fragment",
+          "h",
+          "render"
+        ],
+        "message": "Import from the src/vendors/preact.ts file instead"
+      }
     ]
   },
   "globals": {
-    "$": "readonly",
     "browser": "readonly",
     "chrome": "readonly"
+  },
+  "settings": {
+    "react": {
+      "pragma": "h"
+    }
   }
 }

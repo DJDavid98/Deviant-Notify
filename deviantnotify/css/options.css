@@ -1,34 +1,36 @@
-.sp-replacer {
-	color: var(--input-text) !important;
-	background: transparent !important;
-	border: 0;
+@import url("global.css");
+
+#content:empty {
+  content: "Loading options page…";
+  text-align: center;
+  margin: 1rem;
 }
-.sp-preview {
-	height: 20px;
-	width: 20px;
-	border: 1px solid;
+
+.color-preset {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--input-border);
+  display: inline-block;
+  margin-right: .2rem;
+  vertical-align: middle;
+  cursor: pointer;
 }
-.sp-picker-container {
-	border-color: transparent;
+.color-preset:before {
+  content: "✓";
+  color: #fff;
+  text-shadow: 0 0 2px var(--input-border), 0 0 3px var(--input-border);
+  font-size: .7em;
+  line-height: 1rem;
+  text-align: center;
+  display: block;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  opacity: 0;
+  transition: opacity .2s linear;
+  font-weight: bold;
 }
-.sp-button-container {
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: space-between;
-}
-.sp-palette-container {
-	border-color: inherit !important;
-}
-.sp-container {
-	border-color: currentColor;
-	background-color: var(--popup-bg);
-	box-shadow: 0 0 12px rgba(0, 0, 0, .3);
-}
-.sp-input {
-	font-family: "Consolas", monospace;
-	font-size: 1.2rem !important;
-	text-transform: uppercase;
-	margin-bottom: .5rem;
+.color-preset.current:before {
+  opacity: 1;
 }
 
 .fancy-radio {

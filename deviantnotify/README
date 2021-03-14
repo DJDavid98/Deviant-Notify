@@ -1,0 +1,14 @@
+Dear Firefox Add-on Reviewer,
+
+You will find the following minified JavaScript files in this add-on. None of them have been altered in any way.
+
+  - Preact
+    GitHub: https://github.com/preactjs/preact
+    Sources:
+      - vendor/preact.umd.min.js = https://cdnjs.cloudflare.com/ajax/libs/preact/10.5.12/preact.umd.min.js
+      - vendor/hooks.umd.min.js = https://cdnjs.cloudflare.com/ajax/libs/preact/10.5.12/hooks.umd.min.js
+
+Thank you for keeping the Firefox Add-ons library and its users safe.
+
+Regards,
+The Developer

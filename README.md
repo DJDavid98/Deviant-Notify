@@ -35,6 +35,12 @@ In the future I would like to introduce the ability to filter some types of mess
 
 I'm soliciting user feedback through GitHub issues as well as through e-mail at inbox@djdavid98.art. If you have a feature request or want to ask for something that is not yet listed in this README feel free to reach out. I'll try to accommodate any requests that I believe I can feasibly maintain in the long term.
 
+## Building from source
+
+The extension's source is written in [TypeScript] which needs to be translated to regular old JavaScript so that the browser can actually run it. For a one-time build, simply execute `npm run build` which will compile all `.ts` files to plain `.js` files under the `deviantnotify/js` directory. If you are developing locally then you should run the `npm run watch` script, which is going to watch for changes in the filesystem and automatically re-compiles modified files.
+
+The output of these commands is intentionally not minified to avoid having to jump through extra hoops in the extension approval process, but since the generated files are tied to the source files either way, they are in the repository's `.gitignore` to avoid duplicate or out-of-sync code being committed.
+
 ## Attributions
 
  - Notification sound: [notify.ogg] from [kav2k/dAnotifier]
@@ -48,3 +54,4 @@ I'm soliciting user feedback through GitHub issues as well as through e-mail at 
   [notify.ogg]: https://github.com/kav2k/dAnotifier/blob/master/src/audio/notify.ogg
   [kav2k/dAnotifier]: https://github.com/kav2k/dAnotifier
   [Spectrum]: https://bgrins.github.io/spectrum/
+  [TypeScript]: https://www.typescriptlang.org/

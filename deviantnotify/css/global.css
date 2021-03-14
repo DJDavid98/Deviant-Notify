@@ -219,3 +219,9 @@ kbd {
   margin: 0 2px;
   font-size: 1rem;
 }
+
+code {
+  font-family: Consolas, monospace;
+  font-size: 1em;
+  padding: 0 .1em;
+}

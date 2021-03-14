@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "target": "ES2019",
+    "outDir": "deviantnotify/js",
+    "declaration": false,
+    "moduleResolution": "Node",
+    "jsx": "react",
+    "jsxFactory": "h"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/deviant-notify.ts"
+  ]
+}

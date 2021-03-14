@@ -1,1 +1,4 @@
-deviantnotify/js/vendor/
+# TSC compiled output
+deviantnotify/js
+# Libraries
+deviantnotify/vendor
