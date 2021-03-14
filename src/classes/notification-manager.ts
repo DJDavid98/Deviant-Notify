@@ -4,7 +4,7 @@ import { plural } from '../utils.js';
 import { OptionsManager } from './options-manager.js';
 
 const DEFAULT_BUTTON_INDEXES: ButtonIndexes = {
-  notifs: -1,
+  feedback: -1,
   messages: -1,
   watch: -1,
   dismiss: -1,
@@ -30,7 +30,7 @@ export class NotificationManager {
 
   buildNotifParams(unread: UnreadCounts, id : string = NOTIF_ID): NotifyParams {
     const buttons = [];
-    const hasNotifs = unread.notifs > 0;
+    const hasFeedback = unread.feedback > 0;
     const hasMessages = unread.messages > 0;
     const hasWatch = unread.watch > 0;
     const displayIcons = this.scope.options.get('notifIcons');
@@ -40,12 +40,12 @@ export class NotificationManager {
 
     this.buttonIndexes[id] = { ...DEFAULT_BUTTON_INDEXES };
     let currentIndex = 0;
-    if (hasNotifs) {
+    if (hasFeedback) {
       buttons.push({
-        title: `View ${plural(unread.notifs, 'Notification')}`,
+        title: `View ${plural(unread.feedback, 'Notification')}`,
         iconUrl: displayIcons ? (isFirefox ? '🔔' : `img/bell-${bellStyle}.svg`) : undefined,
       });
-      this.buttonIndexes[id].notifs = currentIndex++;
+      this.buttonIndexes[id].feedback = currentIndex++;
     }
     if (hasMessages) {
       buttons.push({

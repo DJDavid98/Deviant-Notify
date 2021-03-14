@@ -14,7 +14,7 @@ const UNKNOWN_BADGE_TEXT = '?';
 
 export class ExtensionManager {
   private unread: UnreadCounts = {
-    notifs: 0,
+    feedback: 0,
     messages: 0,
     watch: 0,
   };
@@ -30,8 +30,8 @@ export class ExtensionManager {
   constructor(private scope: ExtensionScope) {
   }
 
-  setNotifCount(count: number | string): void {
-    this.unread.notifs = normalizeNumeric(count);
+  setFeedbackCount(count: number | string): void {
+    this.unread.feedback = normalizeNumeric(count);
   }
 
   setMessageCount(count: number | string): void {

@@ -1,13 +1,13 @@
-import { COOKIE_URL, isFirefox, LINKS, VALID_WATCH_MESSAGE_TYPES } from './common.js';
-import {
-  CookieObject,
-  DiFiNotesFolder,
-  DiFiResponse,
-  ExtensionScope,
-  FeedbackApiResponse,
-} from './common-types.js';
 import { OptionsManager } from './classes/options-manager.js';
-import { RequestUtils } from './request-utils.js';
+import { CookieObject, DiFiNotesFolder, DiFiResponse, ExtensionScope } from './common-types.js';
+import {
+  COOKIE_URL,
+  isFirefox,
+  LINKS,
+  VALID_FEEDBACK_MESSAGE_TYPES,
+  VALID_WATCH_MESSAGE_TYPES,
+} from './common.js';
+import { combineMessageCenterApiRequests, RequestUtils } from './request-utils.js';
 import { parseHtml } from './utils.js';
 
 export function request(path: string, params: RequestInit = {}): Promise<Response> {
@@ -35,32 +35,26 @@ export function getCookieByName(name: string): Promise<CookieObject> {
   });
 }
 
-function getTotalFromFeedbackApiResponse(resp: FeedbackApiResponse): number {
-  if (typeof resp === 'object') {
-    if (typeof resp.counts === 'object') {
-      if (typeof resp.counts.total === 'number') {
-        return resp.counts.total;
-      }
-    }
-  }
-
-  return 0;
-}
-
 /**
  * Retrieve the number of non-dismissed items in the watch notifications feed
  */
-async function getNotificationCount(): Promise<number> {
-  const path = `${LINKS.feedbackApi}?limit=0`;
+async function getFeedbackCount(options: OptionsManager): Promise<number> {
+  const disabledTypes = options.get('feedbackDisabled');
+  if (Array.isArray(disabledTypes) && disabledTypes.length > 0) {
+    // Shortcut to return 0 if all types are disabled
+    if (disabledTypes.length === VALID_FEEDBACK_MESSAGE_TYPES.length) {
+      return 0;
+    }
 
-  const resp: FeedbackApiResponse = await request(path, { redirect: 'error' })
-    .then((r) => r.json())
-    .catch((e) => {
-      console.error('Failed to retrieve notification count, see the error below');
-      console.error(e);
-    });
+    // Get count for enabled message types
+    const messageTypes = [...VALID_FEEDBACK_MESSAGE_TYPES].filter((type) => !disabledTypes.includes(type));
+    const paths = messageTypes.map((type) => `${LINKS.feedbackApi}?limit=0&messagetype=${type}&stacked=false`);
+    return combineMessageCenterApiRequests(paths);
+  }
 
-  return getTotalFromFeedbackApiResponse(resp);
+  // Get count for all types (no messagetype parameter)
+  const path = `${LINKS.feedbackApi}?limit=0&stacked=false`;
+  return combineMessageCenterApiRequests([path]);
 }
 
 /**
@@ -100,25 +94,17 @@ async function getMessageCount(reqUtils: RequestUtils): Promise<number> {
 async function getWatchCount(options: OptionsManager): Promise<number> {
   const disabledTypes = options.get('watchDisabled');
   let messageTypes = [...VALID_WATCH_MESSAGE_TYPES];
-  if (disabledTypes && disabledTypes.length > 0) {
+  if (Array.isArray(disabledTypes) && disabledTypes.length > 0) {
+    // Shortcut to return 0 if all types are disabled
+    if (disabledTypes.length === VALID_WATCH_MESSAGE_TYPES.length) {
+      return 0;
+    }
+
     messageTypes = messageTypes.filter((type) => !disabledTypes.includes(type));
   }
 
-  const responses = await Promise.all<FeedbackApiResponse>(messageTypes.map((type) => (
-    request(`${LINKS.watchApi}?limit=0&messagetype=${type}&stacked=false`)
-      .then((r) => r.json())
-  )))
-    .catch((e) => {
-      console.error('Failed to retrieve watch count, see the error below');
-      console.error(e);
-    });
-
-  if (!Array.isArray(responses)) return 0;
-
-  return responses.reduce(
-    (total, response) => total + getTotalFromFeedbackApiResponse(response),
-    0,
-  );
+  const paths = messageTypes.map((type) => `${LINKS.watchApi}?limit=0&messagetype=${type}&stacked=false`);
+  return combineMessageCenterApiRequests(paths);
 }
 
 export function checkSiteData(scope: ExtensionScope): void {
@@ -146,12 +132,12 @@ export function checkSiteData(scope: ExtensionScope): void {
 
       await scope.reqUtils.updateParams(resp);
 
-      let notifCount = 0;
+      let feedbackCount = 0;
       let messageCount = 0;
       let watchCount = 0;
       try {
-        [notifCount, messageCount, watchCount] = await Promise.all([
-          getNotificationCount(),
+        [feedbackCount, messageCount, watchCount] = await Promise.all([
+          getFeedbackCount(scope.options),
           getMessageCount(scope.reqUtils),
           getWatchCount(scope.options),
         ]);
@@ -160,7 +146,7 @@ export function checkSiteData(scope: ExtensionScope): void {
       }
 
       // Placeholder
-      scope.extension.setNotifCount(notifCount);
+      scope.extension.setFeedbackCount(feedbackCount);
       scope.extension.setMessageCount(messageCount);
       scope.extension.setWatchCount(watchCount);
       scope.extension.updateBadgeCounter();

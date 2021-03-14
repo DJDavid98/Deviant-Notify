@@ -2,7 +2,7 @@ import type { FunctionComponent } from 'preact';
 import { ExtensionManager } from './classes/extension-manager.js';
 import { NotificationManager } from './classes/notification-manager.js';
 import { OptionsManager } from './classes/options-manager.js';
-import { VALID_THEMES, VALID_WATCH_MESSAGE_TYPES } from './common.js';
+import { VALID_FEEDBACK_MESSAGE_TYPES, VALID_THEMES, VALID_WATCH_MESSAGE_TYPES } from './common.js';
 import { ExtensionAction } from './extension-action.js';
 import { RequestUtils } from './request-utils.js';
 
@@ -10,6 +10,7 @@ type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 export type WatchMessageTypes = ArrayElement<typeof VALID_WATCH_MESSAGE_TYPES>;
+export type FeedbackMessageTypes = ArrayElement<typeof VALID_FEEDBACK_MESSAGE_TYPES>;
 
 export type ThemeName = ArrayElement<typeof VALID_THEMES>;
 
@@ -33,6 +34,7 @@ export interface ExtensionOptions {
   chatIconStyle: string;
   watchIconStyle: string;
   watchDisabled: string[];
+  feedbackDisabled: string[];
 }
 
 export type CookieObject = browser.cookies.Cookie | chrome.cookies.Cookie;
@@ -40,12 +42,12 @@ export type NotifyParams =
   browser.notifications.CreateNotificationOptions
   | chrome.notifications.NotificationOptions;
 
-export interface FeedbackApiResponse {
+export interface MessageCenterApiResponse {
   counts: { total: number };
 }
 
 export interface UnreadCounts {
-  notifs: number;
+  feedback: number;
   watch: number;
   messages: number;
 }
@@ -75,7 +77,7 @@ export type OptionProcessingResult = OptionProcessingSuccessfulResult | OptionPr
 export type VFC<P = {}> = FunctionComponent<P & { children?: never }>;
 
 export interface ButtonIndexes {
-  notifs: number;
+  feedback: number;
   messages: number;
   watch: number;
   dismiss: number;
@@ -158,6 +160,8 @@ export enum OptionsFieldNames {
   NOTIF_SOUND = 'notifSound',
   WATCH_ENABLED = 'watchEnabled',
   WATCH_DISABLED = 'watchDisabled',
+  FEEDBACK_ENABLED = 'feedbackEnabled',
+  FEEDBACK_DISABLED = 'feedbackDisabled',
   NOTIF_ENABLED = 'notifEnabled',
   NOTIF_TIMEOUT = 'notifTimeout',
   NOTIF_ICONS = 'notifIcons',

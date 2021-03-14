@@ -70,23 +70,53 @@
 	border-color: var(--input-border-focus);
 }
 
-#watch-enabled {
+.notification-type-section h2 {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.notification-type-section h2 .notification-type-section-icon {
+  height: 1em;
+  width: 1em;
+  margin-right: .5rem;
+  vertical-align: middle;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.notification-type-section h2 .notification-type-section-title {
+  height: 1em;
+  width: 1em;
+  margin-right: .5rem;
+  vertical-align: middle;
+  display: inline-block;
+  line-height: 1em;
+  flex: 1 1 auto;
+}
+
+.notification-type-section + .notification-type-section h2 {
+  margin-top: .5rem;
+}
+
+.notification-type-options {
   display: flex;
   flex-flow: row nowrap;
   align-items: stretch;
   justify-content: stretch;
 }
 
-#watch-enabled .col-auto {
+.notification-type-options .col-auto {
   flex: 0 0 auto;
 }
 
-#watch-enabled .col {
+.notification-type-options .col {
   flex: 1 1 auto;
   padding: 0 1rem;
 }
 
-#enabledWatchTypes {
+.notification-type-options select[multiple] {
   height: 11rem;
   margin-bottom: 1rem;
 }

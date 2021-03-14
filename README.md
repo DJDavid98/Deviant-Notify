@@ -45,8 +45,6 @@ The output of these commands is intentionally not minified to avoid having to ju
 
  - Notification sound: [notify.ogg] from [kav2k/dAnotifier]
  - Message, bell and eye icons are &copy; DeviantArt
- - Settings color picker: [Spectrum](https://bgrins.github.io/spectrum/)
-
 
   [unread notes]: https://www.deviantart.com/notifications/notes/#unread_0
   [watch feed]: https://www.deviantart.com/notifications/watch

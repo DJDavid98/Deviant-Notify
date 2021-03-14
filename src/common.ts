@@ -38,6 +38,13 @@ export const VALID_WATCH_MESSAGE_TYPES = [
   'commissions',
   'misc',
 ] as const;
+export const VALID_FEEDBACK_MESSAGE_TYPES = [
+  'comments',
+  'replies',
+  'mentions',
+  'activity',
+  'correspondence',
+] as const;
 
 export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
   badgeColor: '#3a4e27',
@@ -52,4 +59,5 @@ export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
   chatIconStyle: VALID_ICON_STYLES.chat[0],
   watchIconStyle: VALID_ICON_STYLES.watch[0],
   watchDisabled: [],
+  feedbackDisabled: [],
 };

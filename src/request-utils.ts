@@ -1,6 +1,6 @@
 import { OptionsManager } from './classes/options-manager.js';
 import { SignInError } from './classes/sign-in-error.js';
-import { DiFiCallRequest } from './common-types.js';
+import { DiFiCallRequest, MessageCenterApiResponse } from './common-types.js';
 import { LINKS } from './common.js';
 import { getCookieByName, request } from './data-fetching.js';
 
@@ -62,4 +62,35 @@ export class RequestUtils {
 
 export function makeURLFromPath(url: string, options: OptionsManager): string {
   return `https://${options.get('preferredDomain')}${url}`;
+}
+
+function getTotalFromMessageCenterApiResponse(resp: MessageCenterApiResponse): number {
+  if (typeof resp === 'object') {
+    if (typeof resp.counts === 'object') {
+      if (typeof resp.counts.total === 'number') {
+        return resp.counts.total;
+      }
+    }
+  }
+
+  return 0;
+}
+
+export async function combineMessageCenterApiRequests(urls: string[]): Promise<number> {
+  const promises: Promise<MessageCenterApiResponse>[] = urls.map((url) => (
+    request(url)
+      .then((r) => r.json())
+  ));
+  const responses = await Promise.all(promises)
+    .catch((e) => {
+      console.error('Failed to retrieve message center item count, see the error below');
+      console.error(e);
+    });
+
+  if (!Array.isArray(responses)) return 0;
+
+  return responses.reduce(
+    (total, response) => total + getTotalFromMessageCenterApiResponse(response),
+    0,
+  );
 }

@@ -2,6 +2,7 @@ import { ExtensionOptions, ExtensionScope, OptionProcessingResult } from '../com
 import {
   DEFAULT_OPTIONS,
   VALID_DOMAINS,
+  VALID_FEEDBACK_MESSAGE_TYPES,
   VALID_ICON_STYLES,
   VALID_THEMES,
   VALID_WATCH_MESSAGE_TYPES,
@@ -109,6 +110,15 @@ export class OptionsManager {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             value = value.filter((el) => VALID_WATCH_MESSAGE_TYPES.includes(el));
+          }
+          break;
+        case 'feedbackDisabled':
+          if (!Array.isArray(value)) {
+            errors.push('The disabled feedback message types must be an array');
+          } else {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            value = value.filter((el) => VALID_FEEDBACK_MESSAGE_TYPES.includes(el));
           }
           break;
         case 'notifTimeout':

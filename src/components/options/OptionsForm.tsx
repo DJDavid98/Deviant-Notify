@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
 import { ExtensionOptions, OptionsData, VFC } from '../../common-types.js';
-import { isFirefox, VALID_WATCH_MESSAGE_TYPES } from '../../common.js';
+import { isFirefox, VALID_FEEDBACK_MESSAGE_TYPES, VALID_WATCH_MESSAGE_TYPES } from '../../common.js';
 import { checkDomainPermissions, requestDomainPermission } from '../../domain-permissions.js';
 import { ExtensionAction } from '../../extension-action.js';
 import { executeAction, processInputChangeEvent } from '../../utils.js';
@@ -13,6 +13,7 @@ import {
   useState,
 } from '../../vendor/preact.js';
 import { BadgeColorOption } from './BadgeColorOption.js';
+import { FeedbackNotificationOptions } from './FeedbackNotificationOptions.js';
 import { NotificationEnabledOption } from './NotificationEnabledOption.js';
 import { NotificationIconsOption } from './NotificationIconsOption.js';
 import { NotificationStyleOptions } from './NotificationIconStyleOption.js';
@@ -93,6 +94,12 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
     setOptions({ ...options, watchDisabled });
   }, [options]);
 
+  const feedbackEnabledChangeHandler: JSX.GenericEventHandler<HTMLSelectElement> = useCallback((e) => {
+    const result = processInputChangeEvent(e.target).value as string[];
+    const feedbackDisabled = VALID_FEEDBACK_MESSAGE_TYPES.filter((validType) => !result.includes(validType));
+    setOptions({ ...options, feedbackDisabled });
+  }, [options]);
+
   return (
     <form id="options-form" ref={formRef} onSubmit={handleSubmit}>
       <div className="block-tab">
@@ -124,6 +131,12 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
           errors={errors}
           value={options.notifSound}
           onChange={defaultChangeHandler}
+        />
+
+        <FeedbackNotificationOptions
+          errors={errors}
+          value={options.feedbackDisabled}
+          onChange={feedbackEnabledChangeHandler}
         />
 
         <WatchNotificationOptions

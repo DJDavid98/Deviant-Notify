@@ -9,4 +9,4 @@ export const singleton: ExtensionScope = {} as unknown as ExtensionScope;
 singleton.options = new OptionsManager(singleton);
 singleton.notifier = new NotificationManager(singleton);
 singleton.extension = new ExtensionManager(singleton);
-singleton.reqUtils = new RequestUtils(singleton);
+singleton.reqUtils = new RequestUtils();

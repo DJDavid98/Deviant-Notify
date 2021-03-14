@@ -1,6 +1,11 @@
 import { ErrorCollection } from '../classes/error-colection.js';
 import { OptionsManager } from '../classes/options-manager.js';
-import { ExtensionActionData, ExtensionActionResponses, OptionProcessingFailedResult } from '../common-types.js';
+import {
+  ExtensionActionData,
+  ExtensionActionResponses,
+  OptionProcessingFailedResult,
+  UnreadCounts,
+} from '../common-types.js';
 import { isFirefox, LINKS, NOTIF_ID } from '../common.js';
 import { checkSiteData } from '../data-fetching.js';
 import { ExtensionAction } from '../extension-action.js';
@@ -68,8 +73,8 @@ const HANDLERS: MessageHandlers = {
       .then(() => {
         const prefs = new OptionsManager(singleton, data);
         const randomMax = 256;
-        const unread = {
-          notifs: Math.round(Math.random() * randomMax),
+        const unread: UnreadCounts = {
+          feedback: Math.round(Math.random() * randomMax),
           messages: Math.round(Math.random() * randomMax),
           watch: 0,
         };
@@ -97,9 +102,9 @@ chrome.runtime.onMessage.addListener((req, sender, resp) => {
 });
 
 chrome.notifications.onButtonClicked.addListener((notifId, btnIndex) => {
-  const { notifs, messages, watch } = singleton.notifier.getButtonIndexes(notifId);
+  const { feedback, messages, watch } = singleton.notifier.getButtonIndexes(notifId);
   switch (btnIndex) {
-    case notifs:
+    case feedback:
       openNotificationsPage();
       break;
     case messages:
