@@ -78,7 +78,10 @@ async function getFeedbackCount(
       ...defaultCounts,
       ...total,
     },
-    newCount,
+    {
+      ...newCount,
+      ...disabledTypes.reduce((a, c) => ({ ...a, [c]: 0 }), {} as Record<FeedbackMessageTypes, number>),
+    },
   ];
 }
 
@@ -213,7 +216,10 @@ async function getWatchCount(
       ...defaultCounts,
       ...total,
     },
-    newCount,
+    {
+      ...newCount,
+      ...disabledTypes.reduce((a, c) => ({ ...a, [c]: 0 }), {} as Record<WatchMessageTypes, number>),
+    },
   ];
 }
 
@@ -272,12 +278,12 @@ export function checkSiteData(scope: ExtensionScope): void {
         console.error('Failed to get message counts', e);
       }
 
-      scope.extension.setFeedbackCount(feedbackCount || defaultFeedbackCount);
-      scope.extension.setNewFeedbackCount(newFeedbackCount || defaultNewFeedbackCount);
+      scope.extension.setFeedbackCount({ ...defaultFeedbackCount, ...feedbackCount });
+      scope.extension.setNewFeedbackCount({ ...defaultNewFeedbackCount, ...newFeedbackCount });
       scope.extension.setMessageCount(messageCount);
       scope.extension.setNewMessageCount(newMessageCount);
-      scope.extension.setWatchCount(watchCount || defaultWatchCount);
-      scope.extension.setNewWatchCount(newWatchCount || defaultNewWatchCount);
+      scope.extension.setWatchCount({ ...defaultWatchCount, ...watchCount });
+      scope.extension.setNewWatchCount({ ...defaultNewWatchCount, ...newWatchCount });
       scope.extension.updateBadgeCounter();
       scope.extension.setSignedIn(true);
 
