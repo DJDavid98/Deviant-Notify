@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
 import { ExtensionOptions, OptionsData, VFC } from '../../common-types.js';
-import { isFirefox, VALID_FEEDBACK_MESSAGE_TYPES, VALID_WATCH_MESSAGE_TYPES } from '../../common.js';
+import { DEFAULT_OPTIONS, isFirefox, VALID_FEEDBACK_MESSAGE_TYPES, VALID_WATCH_MESSAGE_TYPES } from '../../common.js';
 import { checkDomainPermissions, requestDomainPermission } from '../../domain-permissions.js';
 import { ExtensionAction } from '../../extension-action.js';
 import { executeAction, processInputChangeEvent } from '../../utils.js';
@@ -56,7 +56,7 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
       });
   }, [refresh]);
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit: JSX.GenericEventHandler<EventTarget> = useCallback((e) => {
     e.preventDefault();
     setSubmitting(true);
 
@@ -66,8 +66,7 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
           commitOptions(options);
         })
         .catch(() => {
-          delete options.preferredDomain;
-          commitOptions(options);
+          commitOptions({ ...options, preferredDomain: DEFAULT_OPTIONS.preferredDomain });
         });
     };
 
@@ -83,21 +82,29 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
       .catch(requestPermission);
   }, [options, commitOptions]);
 
-  const defaultChangeHandler: JSX.GenericEventHandler<HTMLElement> = useCallback((e) => {
+  const defaultChangeHandler: JSX.GenericEventHandler<EventTarget> = useCallback((e) => {
     const { name, value } = processInputChangeEvent(e.target);
-    setOptions({ ...options, [name]: value });
+    if (name) {
+      setOptions({ ...options, [name]: value });
+    }
   }, [options]);
 
-  const watchEnabledChangeHandler: JSX.GenericEventHandler<HTMLSelectElement> = useCallback((e) => {
-    const result = processInputChangeEvent(e.target).value as string[];
-    const watchDisabled = VALID_WATCH_MESSAGE_TYPES.filter((validType) => !result.includes(validType));
-    setOptions({ ...options, watchDisabled });
+  const watchEnabledChangeHandler: JSX.GenericEventHandler<EventTarget> = useCallback((e) => {
+    const { name, value } = processInputChangeEvent(e.target);
+    if (name) {
+      const result = value as string[];
+      const watchDisabled = VALID_WATCH_MESSAGE_TYPES.filter((validType) => !result.includes(validType));
+      setOptions({ ...options, watchDisabled });
+    }
   }, [options]);
 
-  const feedbackEnabledChangeHandler: JSX.GenericEventHandler<HTMLSelectElement> = useCallback((e) => {
-    const result = processInputChangeEvent(e.target).value as string[];
-    const feedbackDisabled = VALID_FEEDBACK_MESSAGE_TYPES.filter((validType) => !result.includes(validType));
-    setOptions({ ...options, feedbackDisabled });
+  const feedbackEnabledChangeHandler: JSX.GenericEventHandler<EventTarget> = useCallback((e) => {
+    const { name, value } = processInputChangeEvent(e.target);
+    if (name) {
+      const result = value as string[];
+      const feedbackDisabled = VALID_FEEDBACK_MESSAGE_TYPES.filter((validType) => !result.includes(validType));
+      setOptions({ ...options, feedbackDisabled });
+    }
   }, [options]);
 
   return (
@@ -184,7 +191,7 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
 
       <div className="flex-actions">
         <div className="flex-save">
-          <button className="button" id="submit-button" disabled={submitting}>Save</button>
+          <button className="button" id="submit-button" disabled={submitting === true}>Save</button>
           <p className={submitting === true ? undefined : 'hidden'} id="saving-settings">
             &nbsp;Saving settings&hellip;
           </p>

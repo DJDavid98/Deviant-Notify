@@ -1,8 +1,14 @@
-import { ExtensionOptions } from './common-types.js';
+import {
+  ExtensionOptions,
+  ExtensionReadStates,
+  FeedbackMessageTypes,
+  TotalMessageCounts,
+  TotalMessagesRecord,
+  WatchMessageTypes,
+} from './common-types.js';
 
 export const isFirefox = 'browser' in window;
-export const isMac = typeof window.navigator.userAgent === 'string'
-  && /(macos|iphone|os ?x|ip[ao]d|imac)/i.test(window.navigator.userAgent);
+export const isMac = /(macos|iphone|os ?x|ip[ao]d|imac)/i.test(window.navigator.userAgent);
 export const COOKIE_URL = 'https://www.deviantart.com/';
 export const NOTIF_ID = 'Deviant-Notify';
 export const LINKS = {
@@ -10,15 +16,15 @@ export const LINKS = {
   feedbackApi: '/_napi/da-messagecentre/api/feedback',
   watchApi: '/_napi/da-messagecentre/api/watch',
   difi: '/global/difi/',
-  messages: '/notifications/notes',
-  notifs: '/notifications/feedback',
+  notes: '/notifications/notes',
+  feedback: '/notifications/feedback',
   watch: '/notifications/watch',
   signInPage: '/users/login',
 } as const;
 export const VALID_DOMAINS = (() => {
   const manifest = chrome.runtime.getManifest();
   // jshint -W106
-  return manifest.permissions.concat(manifest.optional_permissions)
+  return (manifest.permissions || []).concat(manifest.optional_permissions || [])
     .filter((el) => /^http/.test(el))
     .map((el) => el.replace(/^https?:\/\/([^/]+)\/$/, '$1'));
 })();
@@ -32,11 +38,11 @@ export const VALID_WATCH_MESSAGE_TYPES = [
   'deviations',
   'groupDeviations',
   'journals',
+  'commissions',
   'forums',
+  'misc',
   'polls',
   'status',
-  'commissions',
-  'misc',
 ] as const;
 export const VALID_FEEDBACK_MESSAGE_TYPES = [
   'comments',
@@ -61,3 +67,59 @@ export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
   watchDisabled: [],
   feedbackDisabled: [],
 };
+
+export const WATCH_MESSAGE_TYPE_READABLE_NAMES: Record<WatchMessageTypes, string> = {
+  deviations: 'Deviation',
+  groupDeviations: 'Group Deviation',
+  journals: 'Post',
+  forums: 'Forum',
+  polls: 'Poll',
+  status: 'Status Update',
+  commissions: 'Commission',
+  misc: 'Miscellaneous',
+};
+export const FEEDBACK_MESSAGE_TYPE_READABLE_NAMES: Record<FeedbackMessageTypes, string> = {
+  comments: 'Comment',
+  replies: 'Reply',
+  mentions: 'Mention',
+  activity: 'Activity',
+  correspondence: 'Correspondence',
+};
+
+/**
+ * These are the maximum number of new items that will be displayed by the UI
+ *
+ * A `+` should be added after the unread count if it is greater than this value
+ */
+export const MAX_NEW_COUNTS = {
+  notes: 20,
+  notifications: 24,
+} as const;
+
+export const constructTotalMessagesRecord = <T>(defaultValue: T): TotalMessagesRecord<T> => ({
+  feedback: {
+    activity: defaultValue,
+    comments: defaultValue,
+    correspondence: defaultValue,
+    mentions: defaultValue,
+    replies: defaultValue,
+  },
+  messages: defaultValue,
+  watch: {
+    commissions: defaultValue,
+    deviations: defaultValue,
+    forums: defaultValue,
+    groupDeviations: defaultValue,
+    journals: defaultValue,
+    misc: defaultValue,
+    polls: defaultValue,
+    status: defaultValue,
+  },
+});
+export const DEFAULT_MESSAGE_COUNTS: TotalMessageCounts = constructTotalMessagesRecord(0);
+export const DEFAULT_READ_STATE: ExtensionReadStates = constructTotalMessagesRecord(null);
+
+/**
+ * Represents the unix epoch in milliseconds, used for checking last read time against some arbitrary old date
+ */
+export const DEFAULT_READ_AT_TIMESTAMP = 0;

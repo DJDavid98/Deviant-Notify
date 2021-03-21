@@ -1,7 +1,12 @@
 @import url("global.css");
 
 html, body {
-  width: 400px;
+  width: 420px;
+}
+
+a.disabled {
+  opacity: .5;
+  cursor: not-allowed;
 }
 
 #popup-icons {
@@ -29,10 +34,6 @@ html, body {
   justify-content: center;
 }
 
-#popup-icons > *:hover {
-  background: var(--icon-bg-hover);
-}
-
 #popup-icons .icon-image,
 #popup-icons .icon-count {
   display: inline-flex;
@@ -53,7 +54,6 @@ html, body {
 }
 
 #popup-icons .icon-count {
-  background: var(--icon-bg-hover);
   color: var(--icon-text);
   padding: 0 .375em;
   margin-left: .375em;
@@ -71,15 +71,132 @@ html, body {
 }
 
 footer {
-  padding: .4em;
+  padding: 1em .4em .4em .4em;
+  background: var(--footer-bg);
+  color: var(--footer-text);
+}
+
+footer a {
+  font-weight: bold;
+}
+footer a:not(:hover), footer a.disabled:hover {
+  color: var(--footer-text);
+}
+footer a:not(.disabled):hover {
+  color: var(--footer-text-hover);
 }
 
 #credits {
-  margin-top: 2em;
+  margin-top: 1em;
   font-size: .9em;
 }
 
 #disclaimer {
-  font-size: .75rem;
+  font-size: .75em;
   margin-top: .75rem;
+}
+
+#count-display {
+  padding: 1rem;
+  font-size: 14px;
+}
+
+#count-display > :not(:last-child) {
+  margin-bottom: .75em;
+}
+
+.new-items-color {
+  color: var(--feedback-item-text-new);
+}
+
+.main-counter {
+  text-align: left;
+  background: var(--feedback-item-bg);
+  color: var(--feedback-item-text-muted);
+}
+
+.main-counter .main-counter-item,
+.main-counter .sub-counter-item {
+  position: relative;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: stretch;
+  align-items: center;
+}
+
+.main-counter .main-counter-item .notification-type-icon {
+  position: absolute;
+  height: 2em;
+  width: 2em;
+  margin-right: .75em;
+  left: 5px;
+  top: 5px;
+  opacity: .4;
+  pointer-events: none;
+}
+
+.main-counter .main-counter-item .main-counter-link {
+  padding: .75em .5em .75em 2.5em;
+}
+
+.main-counter .main-counter-item .main-counter-link,
+.main-counter .sub-counter-item .sub-counter-link {
+  flex: 1 1 auto;
+}
+
+.main-counter .main-counter-item .notification-type-icon,
+.main-counter .main-counter-item .main-counter-link {
+  font-size: 1.2em;
+}
+
+.main-counter ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.main-counter .sub-counter-link {
+  display: block;
+  padding: .5em .75em;
+}
+
+.main-counter .main-counter-link:not(:hover),
+.main-counter .sub-counter-link:not(:hover) {
+  color: inherit !important;
+}
+
+.main-counter .new-items {
+  background: var(--feedback-item-bg-new);
+}
+
+.main-counter .new-count {
+  margin-left: .5em;
+  color: var(--feedback-item-text-new);
+  font-weight: bold;
+}
+
+.button.button-mark-read {
+  padding: .2rem;
+  min-height: 0;
+  height: auto;
+  line-height: normal;
+  box-sizing: border-box;
+}
+
+.loading-indicator {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  box-sizing: border-box;
+  border: 0 solid;
+  border-top-width: 4px;
+  border-radius: 50%;
+  margin-left: .5em;
+  animation: spin .4s linear infinite;
+  position: absolute;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg) }
+  to { transform: rotate(360deg) }
 }

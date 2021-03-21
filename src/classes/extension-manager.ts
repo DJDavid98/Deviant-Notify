@@ -1,28 +1,31 @@
 import {
+  ExtensionManagerMeta,
   ExtensionOptions,
   ExtensionScope,
+  FeedbackMessageCounts,
   OptionsData,
   PopupData,
   ThemeName,
-  UnreadCounts,
+  TotalMessageCounts,
+  WatchMessageCounts,
 } from '../common-types.js';
-import { NOTIF_ID, VALID_THEMES } from '../common.js';
+import { DEFAULT_MESSAGE_COUNTS, NOTIF_ID, VALID_THEMES } from '../common.js';
 import { checkSiteData } from '../data-fetching.js';
-import { normalizeNumeric, shortenCount } from '../utils.js';
+import { ExtensionAction } from '../extension-action.js';
+import { executeAction, normalizeNumeric, recursiveSum, shortenCount } from '../utils.js';
 
 const UNKNOWN_BADGE_TEXT = '?';
 
 export class ExtensionManager {
-  private unread: UnreadCounts = {
-    feedback: 0,
-    messages: 0,
-    watch: 0,
-  };
+  private totalCounts: TotalMessageCounts = { ...DEFAULT_MESSAGE_COUNTS };
 
-  private meta: { signedIn: boolean; autoTheme: string; username: string; lastCheck?: Date } = {
+  private newCounts: TotalMessageCounts = { ...DEFAULT_MESSAGE_COUNTS };
+
+  private meta: ExtensionManagerMeta = {
     signedIn: false,
     username: '',
     autoTheme: VALID_THEMES[0],
+    updating: false,
   };
 
   private updateInterval?: ReturnType<typeof setInterval>;
@@ -30,16 +33,37 @@ export class ExtensionManager {
   constructor(private scope: ExtensionScope) {
   }
 
-  setFeedbackCount(count: number | string): void {
-    this.unread.feedback = normalizeNumeric(count);
+  setFeedbackCount(counts: FeedbackMessageCounts): void {
+    this.totalCounts = { ...this.totalCounts, feedback: counts };
   }
 
   setMessageCount(count: number | string): void {
-    this.unread.messages = normalizeNumeric(count);
+    this.totalCounts.messages = normalizeNumeric(count);
   }
 
-  setWatchCount(count: number | string): void {
-    this.unread.watch = normalizeNumeric(count);
+  setWatchCount(counts: WatchMessageCounts): void {
+    this.totalCounts = { ...this.totalCounts, watch: counts };
+  }
+
+  setNewFeedbackCount(counts: Partial<FeedbackMessageCounts>): void {
+    this.newCounts = { ...this.newCounts, feedback: { ...this.newCounts.feedback, ...counts } };
+  }
+
+  setNewMessageCount(count: number | string): void {
+    this.newCounts.messages = normalizeNumeric(count);
+  }
+
+  setNewWatchCount(counts: Partial<WatchMessageCounts>): void {
+    this.newCounts = { ...this.newCounts, watch: { ...this.newCounts.watch, ...counts } };
+  }
+
+  setUpdating(promise: Promise<unknown>): void {
+    this.meta.updating = true;
+    this.broadcastPopupUpdate();
+    promise.finally(() => {
+      this.meta.updating = false;
+      this.broadcastPopupUpdate();
+    });
   }
 
   setSignedIn(signedIn: boolean): void {
@@ -54,6 +78,10 @@ export class ExtensionManager {
 
   getSignedIn(): boolean {
     return this.meta.signedIn;
+  }
+
+  getUpdating(): boolean {
+    return this.meta.updating;
   }
 
   setUsername(username: string): void {
@@ -72,14 +100,16 @@ export class ExtensionManager {
     return this.meta.lastCheck;
   }
 
-  setAutoThemeFromBodyClasses(bodyClass: string): void {
+  setAutoThemeFromBodyClasses(bodyClass: string | null): void {
     let newValue: ThemeName = VALID_THEMES[0];
-    if (bodyClass.includes('light-green')) {
-      newValue = 'green';
-    } else {
-      const mainThemeMatch = bodyClass.match(/theme-(light|dark)/);
-      if (mainThemeMatch !== null) {
-        newValue = mainThemeMatch[1] as ThemeName;
+    if (typeof bodyClass === 'string') {
+      if (bodyClass.includes('light-green')) {
+        newValue = 'green';
+      } else {
+        const mainThemeMatch = bodyClass.match(/theme-(light|dark)/);
+        if (mainThemeMatch !== null) {
+          newValue = mainThemeMatch[1] as ThemeName;
+        }
       }
     }
     this.setAutoTheme(newValue);
@@ -87,10 +117,11 @@ export class ExtensionManager {
 
   getPopupData(): PopupData {
     return {
-      ...this.unread,
+      ...this.totalCounts,
       ...this.getOptionsData(),
-      signedIn: this.meta.signedIn,
-      username: this.meta.username,
+      ...this.meta,
+      lastCheck: this.meta.lastCheck?.toISOString(),
+      newCounts: this.newCounts,
     };
   }
 
@@ -116,8 +147,8 @@ export class ExtensionManager {
    * Updates the count on the extension icon and sends a notification if it increased
    */
   updateBadgeCounter(): void {
-    const value = Object.keys(this.unread)
-      .reduce((total, key) => total + this.unread[key], 0);
+    const value = Object.keys(this.newCounts)
+      .reduce((total, key) => total + recursiveSum(this.newCounts[key as keyof TotalMessageCounts]), 0);
     const newText = value === 0 ? '' : shortenCount(value);
     chrome.browserAction.getBadgeText({}, (currentText) => {
       if (currentText === newText) return;
@@ -126,7 +157,7 @@ export class ExtensionManager {
 
       if (value === 0 || (!Number.isNaN(currentText) && currentText > newText)) return;
 
-      this.scope.notifier.show(this.unread, NOTIF_ID);
+      this.scope.notifier.show(this.newCounts, NOTIF_ID);
     });
   }
 
@@ -152,5 +183,9 @@ export class ExtensionManager {
     if (typeof this.updateInterval !== 'undefined') clearInterval(this.updateInterval);
     this.updateInterval = setInterval(() => checkSiteData(this.scope), this.scope.options.get('updateInterval') * 60e3);
     if (immediateRecheck) checkSiteData(this.scope);
+  }
+
+  broadcastPopupUpdate(): void {
+    void executeAction(ExtensionAction.BROADCAST_POPUP_UPDATE, this.getPopupData());
   }
 }

@@ -13,7 +13,8 @@ export interface PropTypes {
 
 export const NotificationStyleOptions: VFC<PropTypes> = ({ options, errors, onChange }) => (
   <div className="field" id="notifIconStyleSection">
-    {Object.keys(VALID_ICON_STYLES).map((iconName: keyof typeof VALID_ICON_STYLES) => {
+    {Object.keys(VALID_ICON_STYLES).map((key) => {
+      const iconName = key as keyof typeof VALID_ICON_STYLES;
       const styles = VALID_ICON_STYLES[iconName];
       const groupName: keyof ExtensionOptions = `${iconName}IconStyle` as const;
       return (

@@ -38,8 +38,9 @@
       "error",
       {
         "allow": [
-          "warn",
-          "error"
+          "info",
+          "error",
+          "warn"
         ]
       }
     ],
@@ -111,7 +112,8 @@
         ],
         "message": "Import from the src/vendors/preact.ts file instead"
       }
-    ]
+    ],
+    "@typescript-eslint/ban-ts-comment": "off"
   },
   "globals": {
     "browser": "readonly",

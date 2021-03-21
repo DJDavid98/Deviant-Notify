@@ -11,6 +11,8 @@ import { checkDomainPermissions } from '../domain-permissions.js';
 import { broaderArrayIncludes, eachStrict, isRgbArray } from '../utils.js';
 
 export class OptionsManager {
+  private readonly LOCAL_STORAGE_KEY = 'options';
+
   constructor(
     private scope: ExtensionScope,
     private values: ExtensionOptions = { ...DEFAULT_OPTIONS },
@@ -20,7 +22,10 @@ export class OptionsManager {
   loadUserOptions(): Promise<OptionProcessingResult[]> {
     let parsed;
     try {
-      parsed = JSON.parse(localStorage.getItem('options'));
+      const item = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+      if (item) {
+        parsed = JSON.parse(item);
+      }
     } catch (e) {
       console.error('Could not load user options, see error below');
       console.error(e);
@@ -37,7 +42,7 @@ export class OptionsManager {
   setSetting<K extends keyof ExtensionOptions>(name: K, inputValue: ExtensionOptions[K]): Promise<void> {
     return new Promise((res, rej) => {
       let value = inputValue;
-      const errors = [];
+      const errors: string[] = [];
       switch (name) {
         case 'badgeColor':
           if (typeof value !== 'string') {
@@ -45,9 +50,8 @@ export class OptionsManager {
           } else if (!/^#[a-f\d]{6}$/i.test(value)) {
             errors.push('Badge color format is invalid (must be #RRGGBB)');
           } else {
-            const rgb = value.substring(1)
-              .match(/.{2}/g)
-              .map((n) => parseInt(n, 16));
+            const rgbMatch = value.substring(1).match(/.{2}/g);
+            const rgb = rgbMatch ? rgbMatch.map((n) => parseInt(n, 16)) : [];
             if (!isRgbArray(rgb)) errors.push(`Expected color value to have 3 RGB components, found ${rgb.length}`);
           }
           break;
@@ -72,7 +76,6 @@ export class OptionsManager {
           }
           break;
         case 'updateInterval':
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           value = parseInt(value, 10);
           if (Number.isNaN(value) || !Number.isFinite(value)) {
@@ -107,7 +110,6 @@ export class OptionsManager {
           if (!Array.isArray(value)) {
             errors.push('The disabled watch message types must be an array');
           } else {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             value = value.filter((el) => VALID_WATCH_MESSAGE_TYPES.includes(el));
           }
@@ -116,13 +118,11 @@ export class OptionsManager {
           if (!Array.isArray(value)) {
             errors.push('The disabled feedback message types must be an array');
           } else {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             value = value.filter((el) => VALID_FEEDBACK_MESSAGE_TYPES.includes(el));
           }
           break;
         case 'notifTimeout':
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           value = parseInt(value, 10);
           if (Number.isNaN(value) || !Number.isFinite(value)) {
@@ -142,12 +142,22 @@ export class OptionsManager {
     });
   }
 
-  private static rejectSetting(name, value, errors, rej): void {
+  private static rejectSetting<K extends keyof ExtensionOptions>(
+    name: K,
+    value: ExtensionOptions[K],
+    errors: string[],
+    rej: (errors: string[]
+  ) => void,
+  ): void {
     console.error('Failed to set setting', name, value, errors);
     rej(errors);
   }
 
-  private resolveSetting(name, value, res): void {
+  private resolveSetting<K extends keyof ExtensionOptions>(
+    name: K,
+    value: ExtensionOptions[K],
+    res: VoidFunction,
+  ): void {
     this.values[name] = value;
     this.postSetting(name, value);
     res();
@@ -176,7 +186,7 @@ export class OptionsManager {
   }
 
   saveOptions(recheck = true): void {
-    localStorage.setItem('options', JSON.stringify(this.values));
+    localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(this.values));
     this.scope.extension.restartUpdateInterval(recheck);
   }
 
@@ -193,10 +203,10 @@ export class OptionsManager {
     }
   }
 
-  get<K extends keyof ExtensionOptions>(name: K): ExtensionOptions[K] | undefined;
+  get<K extends keyof ExtensionOptions>(name: K): ExtensionOptions[K];
 
   get(name: string): unknown {
-    return this.values[name];
+    return this.values[name as keyof ExtensionOptions];
   }
 
   getAll(): ExtensionOptions {

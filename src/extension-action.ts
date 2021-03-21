@@ -8,5 +8,9 @@ export enum ExtensionAction {
   GET_OPTIONS_DATA = 'getOptionsData',
   OPEN_NOTIFS_PAGE = 'openNotifsPage',
   OPEN_MESSAGES_PAGE = 'openMessagesPage',
-  OPEN_WATCH_PAGE = 'openWatchPage'
+  OPEN_WATCH_PAGE = 'openWatchPage',
+  INSTANT_UPDATE = 'instantUpdate',
+  SET_MARK_READ = 'setMarkRead',
+  CLEAR_MARK_READ = 'clearMarkRead',
+  BROADCAST_POPUP_UPDATE = 'broadcastPopupUpdate',
 }

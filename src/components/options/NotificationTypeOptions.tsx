@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
 import { ExtensionOptions, VFC } from '../../common-types.js';
-import { capitalize } from '../../utils.js';
+import { capitalize, plural } from '../../utils.js';
 import { h } from '../../vendor/preact.js';
 import { PopupIcon, PopupIconName } from '../popup/PopupIcon.js';
 import { CtrlKey } from './CtrlKey.js';
@@ -43,9 +43,9 @@ export const NotificationTypeOptions: VFC<PropTypes> = ({
           name={inputName}
           onChange={onChange}
         >
-          {validValues.map((validValue) => (
+          {validValues.map((validValue: string) => (
             <option key={validValue} value={validValue} selected={!value.includes(validValue)}>
-              {readableNameMap[validValue]}
+              {plural(0, readableNameMap[validValue], false)}
             </option>
           ))}
         </select>

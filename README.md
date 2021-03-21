@@ -19,17 +19,17 @@ The total amount is then displayed on the icon, and when clicked it opens a menu
 
 By default, the extension sends a notification and plays a sound when the total increases, but both the notification and its sound can be disabled if you only want the counter. The notification also disappears after a couple seconds initially, but this can be changed to a longer duration or disabled entirely (by setting the timeout to 0), so only a click on the close button or one of the buttons will clear it.
 
-### Why aren't some notifications and/or notes accounted for?
+### What is counted as a notification exactly?
 
-This extension is currently very basic compared to any previously existing ones and is limited in functionality. The counters simply display an aggregated total of:
+The counter displays an aggregated total of:
 
  * your own [unread notes]
- * the total number of items in your [watch feed] (this can be filtered by type)
- * all items in your [notifications feed]
+ * the total number of unread items in your [watch feed] (can filtered by type)
+ * all unread items in your [notifications feed] (can be filtered by type)
 
-For the two feed types, currently all items which have not been removed by pressing `X` will become part of the total count.
+The word "unread" refers to a type/category of notifications which have not been marked read yet via a dedicated button in the extension popup. The time when that button was pressed is stored in the browser, and you will not get another notification for that type until you receive a newer item. The badge on the extension icon will also only show an aggregate of unread items.
 
-In the future I would like to introduce the ability to filter some types of messages from the notification count, as well as to include notifications for group messages, but for now I wanted to get something out the door ASAP. It is unlikely that I will be including any previews of the notification items themselves. The logic for detecting new items is also very basic for now, but I've already received suggestions on how it could be improved in the future.
+Additionally, there are links to mark all current notifications as read and to reset the read state (so all notification will show as unread) in the extension popup.
 
 ## Submitting feedback
 

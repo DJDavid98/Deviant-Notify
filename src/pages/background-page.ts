@@ -1,19 +1,15 @@
 import { ErrorCollection } from '../classes/error-colection.js';
 import { OptionsManager } from '../classes/options-manager.js';
-import {
-  ExtensionActionData,
-  ExtensionActionResponses,
-  OptionProcessingFailedResult,
-  UnreadCounts,
-} from '../common-types.js';
-import { isFirefox, LINKS, NOTIF_ID } from '../common.js';
+import { MessageHandlers, OptionProcessingFailedResult, TotalMessageCounts } from '../common-types.js';
+import { DEFAULT_MESSAGE_COUNTS, isFirefox, LINKS, NOTIF_ID } from '../common.js';
 import { checkSiteData } from '../data-fetching.js';
 import { ExtensionAction } from '../extension-action.js';
-import { openMessagesPage, openNotificationsPage, openWatchPage } from '../page-openers.js';
+import { openFeedbackNotifsPage, openNotesPage, openWatchNotifsPage } from '../page-openers.js';
 import { makeURLFromPath } from '../request-utils.js';
 import { singleton } from '../singleton.js';
-import { secondsElapsedSince } from '../utils.js';
+import { markAllNotifsRead, secondsElapsedSince } from '../utils.js';
 
+singleton.read.load();
 singleton.options.loadUserOptions()
   .then(() => {
     checkSiteData(singleton);
@@ -22,18 +18,13 @@ singleton.options.loadUserOptions()
     console.error('Options validation failed:', e);
   });
 
-type MessageHandlers = {
-  [k in ExtensionAction]: (param: {
-    data: ExtensionActionData[k],
-    resp: (responseData: ExtensionActionResponses[k]) => void,
-  }) => boolean | void;
-}
+const noop = () => undefined;
 
 const HANDLERS: MessageHandlers = {
   [ExtensionAction.UPDATE_OPTIONS]: ({ data, resp }) => {
     singleton.options.processOptions(data)
       .then((results) => {
-        const failed = results.filter((el): el is OptionProcessingFailedResult => el.status === false);
+        const failed = results.filter((el): el is OptionProcessingFailedResult => !el.status);
         if (failed.length) {
           const errors = new ErrorCollection();
           failed.forEach((el) => {
@@ -73,45 +64,61 @@ const HANDLERS: MessageHandlers = {
       .then(() => {
         const prefs = new OptionsManager(singleton, data);
         const randomMax = 256;
-        const unread: UnreadCounts = {
-          feedback: Math.round(Math.random() * randomMax),
+        const counts: TotalMessageCounts = {
+          feedback: {
+            ...DEFAULT_MESSAGE_COUNTS.feedback,
+            comments: Math.round(Math.random() * randomMax),
+          },
           messages: Math.round(Math.random() * randomMax),
-          watch: 0,
+          watch: {
+            ...DEFAULT_MESSAGE_COUNTS.watch,
+          },
         };
-        singleton.notifier.show(unread, id, prefs);
+        singleton.notifier.show(counts, id, prefs);
       });
+  },
+  [ExtensionAction.SET_MARK_READ]: ({ data }) => {
+    singleton.read.update(data);
+  },
+  [ExtensionAction.CLEAR_MARK_READ]: () => {
+    singleton.read.clear();
   },
   [ExtensionAction.GET_POPUP_DATA]: ({ resp }) => void resp(singleton.extension.getPopupData()),
   [ExtensionAction.GET_OPTIONS_DATA]: ({ resp }) => void resp(singleton.extension.getOptionsData()),
-  [ExtensionAction.OPEN_NOTIFS_PAGE]: () => void openNotificationsPage(),
-  [ExtensionAction.OPEN_MESSAGES_PAGE]: () => void openMessagesPage(),
-  [ExtensionAction.OPEN_WATCH_PAGE]: () => void openWatchPage(),
+  [ExtensionAction.INSTANT_UPDATE]: () => void singleton.extension.restartUpdateInterval(true),
+  [ExtensionAction.OPEN_NOTIFS_PAGE]: () => void openFeedbackNotifsPage(),
+  [ExtensionAction.OPEN_MESSAGES_PAGE]: () => void openNotesPage(),
+  [ExtensionAction.OPEN_WATCH_PAGE]: () => void openWatchNotifsPage(),
   [ExtensionAction.OPEN_SIGN_IN_PAGE]: () => {
     chrome.tabs.create({ url: makeURLFromPath(LINKS.signInPage, singleton.options) });
   },
+  [ExtensionAction.BROADCAST_POPUP_UPDATE]: noop,
 };
 
-// eslint-disable-next-line consistent-return
 chrome.runtime.onMessage.addListener((req, sender, resp) => {
   const { action, data } = req;
   if (action in HANDLERS) {
-    return HANDLERS[action]({ data, resp });
+    // eslint-disable-next-line consistent-return
+    return HANDLERS[action as keyof MessageHandlers]({ data, resp });
   }
 
-  throw new Error(`No handler defined for action ${action}`);
+  throw new Error(`[Background] No handler defined for action ${action}`);
 });
 
 chrome.notifications.onButtonClicked.addListener((notifId, btnIndex) => {
-  const { feedback, messages, watch } = singleton.notifier.getButtonIndexes(notifId);
+  const { feedback, messages, watch, read } = singleton.notifier.getButtonIndexes(notifId);
   switch (btnIndex) {
     case feedback:
-      openNotificationsPage();
+      openFeedbackNotifsPage();
       break;
     case messages:
-      openMessagesPage();
+      openNotesPage();
       break;
     case watch:
-      openWatchPage();
+      openWatchNotifsPage();
+      break;
+    case read:
+      markAllNotifsRead();
       break;
   }
   chrome.notifications.clear(notifId);

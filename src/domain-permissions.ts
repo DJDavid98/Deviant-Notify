@@ -1,6 +1,6 @@
 import { isFirefox } from './common.js';
 
-function domainPermissionCallback(result, res, rej) {
+function domainPermissionCallback(result: boolean, res: VoidFunction, rej: VoidFunction) {
   if (result) { res(); } else rej();
 }
 

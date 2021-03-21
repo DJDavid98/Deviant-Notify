@@ -1,7 +1,9 @@
-import type { FunctionComponent } from 'preact';
+import type { FunctionComponent, JSX as pJSX } from 'preact';
+import type { DeepPartial } from 'tsdef';
 import { ExtensionManager } from './classes/extension-manager.js';
 import { NotificationManager } from './classes/notification-manager.js';
 import { OptionsManager } from './classes/options-manager.js';
+import { ReadStateManager } from './classes/read-state-manager.js';
 import { VALID_FEEDBACK_MESSAGE_TYPES, VALID_THEMES, VALID_WATCH_MESSAGE_TYPES } from './common.js';
 import { ExtensionAction } from './extension-action.js';
 import { RequestUtils } from './request-utils.js';
@@ -12,6 +14,21 @@ type ArrayElement<ArrayType extends readonly unknown[]> =
 export type WatchMessageTypes = ArrayElement<typeof VALID_WATCH_MESSAGE_TYPES>;
 export type FeedbackMessageTypes = ArrayElement<typeof VALID_FEEDBACK_MESSAGE_TYPES>;
 
+export type WatchMessageRecord<T> = Record<WatchMessageTypes, T>;
+export type FeedbackMessageRecord<T> = Record<FeedbackMessageTypes, T>;
+
+export interface TotalMessagesRecord<T> {
+  feedback: FeedbackMessageRecord<T>;
+  watch: WatchMessageRecord<T>;
+  messages: T;
+}
+
+export type WatchMessageCounts = WatchMessageRecord<number>;
+export type FeedbackMessageCounts = FeedbackMessageRecord<number>;
+export type TotalMessageCounts = TotalMessagesRecord<number>;
+
+export type ExtensionReadStates = TotalMessagesRecord<Date | null>;
+
 export type ThemeName = ArrayElement<typeof VALID_THEMES>;
 
 export interface ExtensionScope {
@@ -19,6 +36,7 @@ export interface ExtensionScope {
   extension: ExtensionManager;
   reqUtils: RequestUtils;
   notifier: NotificationManager;
+  read: ReadStateManager;
 }
 
 export interface ExtensionOptions {
@@ -42,14 +60,30 @@ export type NotifyParams =
   browser.notifications.CreateNotificationOptions
   | chrome.notifications.NotificationOptions;
 
-export interface MessageCenterApiResponse {
+export interface MessageCenterApiResponse<Type = string, ResultType = unknown> {
   counts: { total: number };
+  settings: { type: Type, stacked: boolean, sort: string };
+  hasMore: boolean;
+  cursor: string;
+  results: ResultType[];
 }
 
-export interface UnreadCounts {
-  feedback: number;
-  watch: number;
-  messages: number;
+export interface MessageCenterItemResult<Subject = unknown> {
+  messageId: string;
+  type: string;
+  orphaned: boolean;
+  ts: string;
+  isNew: boolean;
+  originator: {
+    userId: number;
+    useridUuid: string;
+    username: string;
+    usericon: string;
+    type: string;
+    isWatching: boolean;
+    isNewDeviant: boolean;
+  };
+  subject: Subject;
 }
 
 interface CommonPageData {
@@ -58,9 +92,17 @@ interface CommonPageData {
   theme: string;
 }
 
-export interface PopupData extends UnreadCounts, CommonPageData {
+export interface ExtensionManagerMeta {
   signedIn: boolean;
+  autoTheme: string;
   username: string;
+  lastCheck?: Date;
+  updating: boolean;
+}
+
+export interface PopupData extends TotalMessageCounts, CommonPageData, Omit<ExtensionManagerMeta, 'lastCheck'> {
+  newCounts: TotalMessageCounts;
+  lastCheck?: string;
 }
 
 export type OptionsData = CommonPageData;
@@ -74,6 +116,8 @@ export type OptionProcessingSuccessfulResult = { status: true };
 export type OptionProcessingResult = OptionProcessingSuccessfulResult | OptionProcessingFailedResult;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
+export type FC<P = {}> = FunctionComponent<P>;
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type VFC<P = {}> = FunctionComponent<P & { children?: never }>;
 
 export interface ButtonIndexes {
@@ -81,6 +125,7 @@ export interface ButtonIndexes {
   messages: number;
   watch: number;
   dismiss: number;
+  read: number;
 }
 
 type DiFiStatus = 'SUCCESS' | 'FAIL';
@@ -91,16 +136,16 @@ export interface DiFiCallRequest {
   method: string;
 }
 
-export interface DiFiCall {
+export interface DiFiCall<Content = unknown> {
   request: DiFiCallRequest;
   response: {
-    content: unknown;
+    content: Content;
     status: DiFiStatus;
   };
 }
 
-export interface DiFiResponse {
-  DiFi: { response: { calls: DiFiCall[], status: DiFiStatus } }
+export interface DiFiResponse<Calls = DiFiCall[]> {
+  DiFi: { response: { calls: Calls, status: DiFiStatus } }
 }
 
 export interface DiFiNotesFolder {
@@ -119,17 +164,40 @@ export interface DiFiNotesFolder {
   count: string;
 }
 
+export interface DifiNotesList {
+  /**
+   * Name of the folder passed in the request
+   */
+  folderid: string;
+  /**
+   * Unselect any currently selected note when true
+   */
+  deselectnote: boolean;
+  /**
+   * Where the next page starts
+   */
+  offset: number;
+  /**
+   * HTML string containing the list of notes
+   */
+  body: string;
+}
+
 export interface ExtensionActionData {
   [ExtensionAction.UPDATE_OPTIONS]: ExtensionOptions;
-  [ExtensionAction.OPEN_SIGN_IN_PAGE]: never;
-  [ExtensionAction.GET_SELECTORS]: never;
+  [ExtensionAction.OPEN_SIGN_IN_PAGE]: void;
+  [ExtensionAction.GET_SELECTORS]: void;
   [ExtensionAction.ON_SITE_UPDATE]: { bodyClass: string };
   [ExtensionAction.TEST_MESSAGE]: ExtensionOptions;
-  [ExtensionAction.GET_POPUP_DATA]: never;
-  [ExtensionAction.GET_OPTIONS_DATA]: never;
-  [ExtensionAction.OPEN_NOTIFS_PAGE]: never;
-  [ExtensionAction.OPEN_MESSAGES_PAGE]: never;
-  [ExtensionAction.OPEN_WATCH_PAGE]: never;
+  [ExtensionAction.GET_POPUP_DATA]: void;
+  [ExtensionAction.GET_OPTIONS_DATA]: void;
+  [ExtensionAction.OPEN_NOTIFS_PAGE]: void;
+  [ExtensionAction.OPEN_MESSAGES_PAGE]: void;
+  [ExtensionAction.OPEN_WATCH_PAGE]: void;
+  [ExtensionAction.INSTANT_UPDATE]: void;
+  [ExtensionAction.BROADCAST_POPUP_UPDATE]: PopupData;
+  [ExtensionAction.SET_MARK_READ]: DeepPartial<ExtensionReadStates>;
+  [ExtensionAction.CLEAR_MARK_READ]: void;
 }
 
 interface GetSelectorsData {
@@ -150,6 +218,10 @@ export interface ExtensionActionResponses {
   [ExtensionAction.OPEN_NOTIFS_PAGE]: void;
   [ExtensionAction.OPEN_MESSAGES_PAGE]: void;
   [ExtensionAction.OPEN_WATCH_PAGE]: void;
+  [ExtensionAction.INSTANT_UPDATE]: void;
+  [ExtensionAction.BROADCAST_POPUP_UPDATE]: PopupData;
+  [ExtensionAction.SET_MARK_READ]: void;
+  [ExtensionAction.CLEAR_MARK_READ]: void;
 }
 
 export enum OptionsFieldNames {
@@ -166,3 +238,22 @@ export enum OptionsFieldNames {
   NOTIF_TIMEOUT = 'notifTimeout',
   NOTIF_ICONS = 'notifIcons',
 }
+
+export type MessageHandlers = {
+  [k in ExtensionAction]: (param: {
+    data: ExtensionActionData[k],
+    resp: (responseData: ExtensionActionResponses[k]) => void,
+  }) => boolean | void;
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace JSX {
+    type IntrinsicElements = pJSX.IntrinsicElements;
+    type IntrinsicAttributes = pJSX.IntrinsicAttributes;
+  }
+}
+
+export type LinkCreator<T = string> = (type?: T) => string;
+export type ReadStateUpdater = (date: Date) => DeepPartial<ExtensionReadStates>;
+export type TypedReadStateUpdater<T = string> = (type: T) => (date: Date) => DeepPartial<ExtensionReadStates>;

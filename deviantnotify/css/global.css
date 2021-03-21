@@ -28,12 +28,12 @@ body.chrome .firefox-only {
 	speak: none;
 }
 
-a, a:active, a:visited {
+a, a:active, a:visited, a.disabled:hover {
 	color: var(--link-normal);
 	text-decoration: none;
 }
 
-a:hover {
+a:not(.disabled):hover {
 	color: var(--link-hover);
 }
 
@@ -55,7 +55,7 @@ h1, h2, h3, h4, h5 {
 	margin-bottom: .62em;
 }
 
-.button, .sp-choose, .sp-cancel {
+.button {
 	background: var(--button-bg);
 	border: 1px solid transparent;
 	box-sizing: border-box;
@@ -71,27 +71,33 @@ h1, h2, h3, h4, h5 {
 	text-transform: uppercase;
 	font-weight: bold;
 }
+.button:disabled {
+  opacity: .6;
+}
 
-.button:hover, .sp-choose:hover {
+.button:hover {
 	background-color: var(--button-bg-hover);
 }
 
-.button:active, .button:hover, .button:visited, .sp-choose:active, .sp-choose:hover {
+.button:active, .button:hover, .button:visited {
 	color: var(--button-text);
 }
 
 
-.button-link, .sp-cancel {
+.button-link {
 	margin-right: .5rem;
 	background: transparent !important;
-	color: var(--link-normal);
 	border-color: currentColor;
 }
-.button-link:active, .button-link:hover, .sp-cancel:hover, .sp-cancel:active {
+.button-link,
+.button-link:disabled {
+	color: var(--link-normal);
+}
+.button-link:not(:disabled):active, .button-link:not(:disabled):hover {
 	color: var(--link-hover);
 }
 
-.input, .sp-input {
+.input {
 	box-sizing: border-box;
 	padding: 6px;
 	background: transparent;
@@ -108,7 +114,7 @@ h1, h2, h3, h4, h5 {
 	border-radius: 0;
 }
 
-.input:focus, .sp-input:focus {
+.input:focus {
 	outline: 0;
 	border-bottom-color: var(--input-border-focus);
 }
@@ -137,20 +143,17 @@ h1, h2, h3, h4, h5 {
 }
 
 .field input,
-.field select,
-.field .sp-replacer {
+.field select {
 	margin: 0 .5em;
 }
 
 .field input:first-child,
-.field select:first-child,
-.field .sp-replacer:first-child {
+.field select:first-child {
 	margin-left: 0;
 }
 
 .field input:last-child,
-.field select:last-child,
-.field .sp-replacer:last-child {
+.field select:last-child {
 	margin-right: 0;
 }
 

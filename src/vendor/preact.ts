@@ -5,6 +5,7 @@ import type {
   useEffect as pUseEffect,
   useRef as pUseRef,
   useState as pUseState,
+  useMemo as pUseMemo,
 } from 'preact/hooks';
 
 /* eslint-enable no-restricted-imports */
@@ -20,6 +21,7 @@ export interface PreactHooksUmdGlobal {
   useEffect: typeof pUseEffect;
   useRef: typeof pUseRef;
   useState: typeof pUseState;
+  useMemo: typeof pUseMemo;
 }
 
 declare global {
@@ -30,4 +32,6 @@ declare global {
 }
 
 export const { Fragment, render, h } = window.preact;
-export const { useState, useEffect, useCallback, useRef } = window.preactHooks;
+export const {
+  useState, useEffect, useCallback, useRef, useMemo,
+} = window.preactHooks;

@@ -21,6 +21,7 @@
       .then((resp: unknown) => {
         if (
           typeof resp === 'object'
+          && resp !== null
           && 'onlyDomain' in resp
           && (resp as { onlyDomain: string }).onlyDomain !== window.location.host) {
           return;
@@ -39,11 +40,11 @@
 
   window.requestAnimationFrame(scheduleUpdate);
 
-  const delegateListener = (el, elementSelector, eventName, handler) => {
+  const delegateListener = (el: HTMLElement, elementSelector: string, eventName: string, handler: (e: Event) => void) => {
     el.addEventListener(eventName, (e) => {
       // loop parent nodes from the target to the delegation node
-      for (let { target } = e; target && target !== el; target = target.parentNode) {
-        if (target.matches(elementSelector)) {
+      for (let { target } = e; target && target !== el; target = (target as HTMLElement).parentNode) {
+        if ((target as HTMLElement).matches(elementSelector)) {
           handler(e);
           break;
         }
@@ -53,5 +54,7 @@
 
   // Schedule updates to the 'auto' theme option when changed on-site
   const userMenu = document.getElementById('site-header-user-menu');
-  delegateListener(userMenu, 'span[title$="Theme"]', 'click', scheduleUpdate);
+  if (userMenu) {
+    delegateListener(userMenu, 'span[title$="Theme"]', 'click', scheduleUpdate);
+  }
 })();

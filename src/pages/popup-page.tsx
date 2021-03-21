@@ -1,41 +1,34 @@
+import { ExtensionActionResponses, PopupData } from '../common-types.js';
+import { PopupContent } from '../components/popup/PopupContent.js';
+import { PopupFooter } from '../components/popup/PopupFooter.js';
 import { PopupIconList } from '../components/popup/PopupIconList.js';
-import { SignInStatus } from '../components/popup/SignInStatus.js';
 import { ExtensionAction } from '../extension-action.js';
-import { createThemeLinkTag, executeAction } from '../utils.js';
+import { createThemeLinkTag, emptyNode, executeAction } from '../utils.js';
 import { h, render } from '../vendor/preact.js';
 
 const $popupIcons = document.getElementById('popup-icons');
-const $signInStatus = document.getElementById('sign-in-status');
+const $content = document.getElementById('content');
 const $version = document.getElementById('version');
-const $options = document.getElementById('options');
+const $dynamicFooter = document.getElementById('dynamic-footer');
 const $themeLink = createThemeLinkTag();
 
-render(<SignInStatus />, $signInStatus);
-
-$options.addEventListener('click', (e) => {
-  e.preventDefault();
-  chrome.runtime.openOptionsPage();
-});
+const renderPage = (response: PopupData) => {
+  if ($version) $version.innerText = `v${response.version}`;
+  $themeLink.href = `css/theme-${response.theme}.css`;
+  if ($popupIcons) render(<PopupIconList {...response} />, $popupIcons);
+  if ($content) {
+    emptyNode($content);
+    render(<PopupContent {...response} />, $content);
+  }
+  if ($dynamicFooter) render(<PopupFooter {...response} />, $dynamicFooter);
+};
 
 executeAction(ExtensionAction.GET_POPUP_DATA)
-  .then((response) => {
-    $version.innerText = `v${response.version}`;
-    $themeLink.href = `css/theme-${response.theme}.css`;
-    if (response.signedIn) {
-      render(
-        <SignInStatus
-          signedIn={response.signedIn}
-          username={response.username}
-          domain={response.prefs.preferredDomain}
-        />,
-        $signInStatus,
-      );
+  .then(renderPage);
 
-      render(<PopupIconList {...response} />, $popupIcons);
-    } else {
-      render(<PopupIconList />, $popupIcons);
-
-      render(<SignInStatus signedIn={false} />, $signInStatus);
-    }
-    $signInStatus.classList.remove('hidden');
-  });
+chrome.runtime.onMessage.addListener((req) => {
+  const { action, data } = req;
+  if (action === ExtensionAction.BROADCAST_POPUP_UPDATE) {
+    renderPage(data as ExtensionActionResponses[ExtensionAction.BROADCAST_POPUP_UPDATE]);
+  }
+});

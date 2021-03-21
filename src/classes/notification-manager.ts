@@ -1,6 +1,6 @@
-import { isFirefox, NOTIF_ID } from '../common.js';
-import { ButtonIndexes, ExtensionScope, NotifyParams, UnreadCounts } from '../common-types.js';
-import { plural } from '../utils.js';
+import { isFirefox, MAX_NEW_COUNTS, NOTIF_ID } from '../common.js';
+import { ButtonIndexes, ExtensionScope, NotifyParams, TotalMessageCounts } from '../common-types.js';
+import { capNumberWithPlus, plural, recursiveSum } from '../utils.js';
 import { OptionsManager } from './options-manager.js';
 
 const DEFAULT_BUTTON_INDEXES: ButtonIndexes = {
@@ -8,6 +8,7 @@ const DEFAULT_BUTTON_INDEXES: ButtonIndexes = {
   messages: -1,
   watch: -1,
   dismiss: -1,
+  read: -1,
 };
 
 export class NotificationManager {
@@ -28,11 +29,13 @@ export class NotificationManager {
     this.sound.preload = 'true';
   }
 
-  buildNotifParams(unread: UnreadCounts, id : string = NOTIF_ID): NotifyParams {
+  buildNotifParams(counts: TotalMessageCounts, id : string = NOTIF_ID): NotifyParams {
     const buttons = [];
-    const hasFeedback = unread.feedback > 0;
-    const hasMessages = unread.messages > 0;
-    const hasWatch = unread.watch > 0;
+    const feedbackMessageCount = recursiveSum(counts.feedback);
+    const watchMessageCount = recursiveSum(counts.watch);
+    const hasFeedback = feedbackMessageCount > 0;
+    const hasMessages = counts.messages > 0;
+    const hasWatch = watchMessageCount > 0;
     const displayIcons = this.scope.options.get('notifIcons');
     const bellStyle = this.scope.options.get('bellIconStyle');
     const chatStyle = this.scope.options.get('chatIconStyle');
@@ -42,21 +45,33 @@ export class NotificationManager {
     let currentIndex = 0;
     if (hasFeedback) {
       buttons.push({
-        title: `View ${plural(unread.feedback, 'Notification')}`,
+        title: [
+          'View',
+          capNumberWithPlus(feedbackMessageCount, MAX_NEW_COUNTS.notifications),
+          plural(feedbackMessageCount, 'Notification', false),
+        ].join(' '),
         iconUrl: displayIcons ? (isFirefox ? '🔔' : `img/bell-${bellStyle}.svg`) : undefined,
       });
       this.buttonIndexes[id].feedback = currentIndex++;
     }
     if (hasMessages) {
       buttons.push({
-        title: `View ${plural(unread.messages, 'Note')}`,
+        title: [
+          'View',
+          capNumberWithPlus(counts.messages, MAX_NEW_COUNTS.notes),
+          plural(counts.messages, 'Note', false),
+        ].join(' '),
         iconUrl: displayIcons ? (isFirefox ? '📝' : `img/chat-${chatStyle}.svg`) : undefined,
       });
       this.buttonIndexes[id].messages = currentIndex++;
     }
     if (hasWatch) {
       buttons.push({
-        title: `View ${plural(unread.watch, 'Watched Item')}`,
+        title: [
+          'View',
+          capNumberWithPlus(watchMessageCount, MAX_NEW_COUNTS.notifications),
+          plural(watchMessageCount, 'Watched Item', false),
+        ].join(' '),
         iconUrl: displayIcons ? (isFirefox ? '🥽' : `img/watch-${watchStyle}.svg`) : undefined,
       });
       this.buttonIndexes[id].watch = currentIndex++;
@@ -76,10 +91,11 @@ export class NotificationManager {
         // If there are too many, replace them with a more verbose message & simple dismiss action instead
         params.message += NotificationManager.constructFirefoxMessage(buttons, false)
           .replace(/\n\n/g, '\n');
-        params.buttons = [{ title: 'Dismiss' }];
+        params.buttons = [{ title: 'Dismiss' }, { title: 'Mark all read' }];
         this.buttonIndexes[id] = {
           ...DEFAULT_BUTTON_INDEXES,
           dismiss: 0,
+          read: 1,
         };
       } else {
         params.buttons = buttons;
@@ -95,7 +111,7 @@ export class NotificationManager {
 
   static constructFirefoxMessage(
     buttons: Array<{ title: string, iconUrl: string | undefined }>,
-    displayIcons: boolean,
+    displayIcons?: boolean,
   ): string {
     let restText = ':\n';
     buttons.forEach((btn) => {
@@ -146,14 +162,14 @@ export class NotificationManager {
     void this.sound.play();
   }
 
-  show(unread: UnreadCounts, id: string = NOTIF_ID, prefs: OptionsManager = this.scope.options): void {
+  show(counts: TotalMessageCounts, id: string = NOTIF_ID, prefs: OptionsManager = this.scope.options): void {
     if (prefs.get('notifSound')) {
       this.playSound();
     }
     if (prefs.get('notifEnabled')) {
       this.clearTimeout(id);
 
-      const params = this.buildNotifParams(unread, id);
+      const params = this.buildNotifParams(counts, id);
 
       this.createNotif(params, id);
     }
