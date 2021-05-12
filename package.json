@@ -34,7 +34,7 @@
     "spectrum-colorpicker": "^1.8.0",
     "tsdef": "0.0.14",
     "typescript": "^4.2.3",
-    "web-ext": "^6.0.0"
+    "web-ext": "^6.1.0"
   },
   "husky": {
     "hooks": {
