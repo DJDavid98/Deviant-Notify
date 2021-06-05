@@ -6,7 +6,6 @@ import { OptionsManager } from './classes/options-manager.js';
 import { ReadStateManager } from './classes/read-state-manager.js';
 import { VALID_FEEDBACK_MESSAGE_TYPES, VALID_THEMES, VALID_WATCH_MESSAGE_TYPES } from './common.js';
 import { ExtensionAction } from './extension-action.js';
-import { RequestUtils } from './request-utils.js';
 
 type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
@@ -34,7 +33,6 @@ export type ThemeName = ArrayElement<typeof VALID_THEMES>;
 export interface ExtensionScope {
   options: OptionsManager;
   extension: ExtensionManager;
-  reqUtils: RequestUtils;
   notifier: NotificationManager;
   read: ReadStateManager;
 }
@@ -128,27 +126,11 @@ export interface ButtonIndexes {
   read: number;
 }
 
-type DiFiStatus = 'SUCCESS' | 'FAIL';
-
-export interface DiFiCallRequest {
-  args: unknown[];
-  class: string;
-  method: string;
+export interface ApiConsoleResponse<Data> {
+  results: Data;
 }
 
-export interface DiFiCall<Content = unknown> {
-  request: DiFiCallRequest;
-  response: {
-    content: Content;
-    status: DiFiStatus;
-  };
-}
-
-export interface DiFiResponse<Calls = DiFiCall[]> {
-  DiFi: { response: { calls: Calls, status: DiFiStatus } }
-}
-
-export interface DiFiNotesFolder {
+export interface NotesFolder {
   /**
    * UUID
    */
@@ -164,24 +146,43 @@ export interface DiFiNotesFolder {
   count: string;
 }
 
-export interface DifiNotesList {
-  /**
-   * Name of the folder passed in the request
-   */
-  folderid: string;
-  /**
-   * Unselect any currently selected note when true
-   */
-  deselectnote: boolean;
-  /**
-   * Where the next page starts
-   */
-  offset: number;
-  /**
-   * HTML string containing the list of notes
-   */
-  body: string;
+export interface ApiUser {
+  userid: string;
+  username: string;
+  usericon: string;
+  type: string;
 }
+
+interface NotesListItem {
+  /**
+   * UUID
+   */
+  noteid: string;
+  /**
+   * ISO timestamp
+   */
+  ts: string;
+  /**
+   * Indicates whether the note was opened before
+   */
+  unread: boolean;
+  starred: boolean;
+  /**
+   * True probably means it's a draft
+   */
+  sent: false;
+  subject: string;
+  preview: string;
+  body: string;
+  /** Sender details */
+  user: ApiUser;
+  recipients: ApiUser[];
+}
+
+/* eslint-disable camelcase */
+export type NotesListApiResponse = ApiConsoleResponse<NotesListItem[]>
+  & ({ has_more: true; next_offset: number } | { has_more: false; next_offset: null })
+/* eslint-enable camelcase */
 
 export interface ExtensionActionData {
   [ExtensionAction.UPDATE_OPTIONS]: ExtensionOptions;

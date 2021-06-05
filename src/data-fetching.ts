@@ -1,15 +1,13 @@
 import { OptionsManager } from './classes/options-manager.js';
 import { ReadStateManager } from './classes/read-state-manager.js';
 import {
+  ApiConsoleResponse,
   CookieObject,
-  DiFiCall,
-  DiFiCallRequest,
-  DiFiNotesFolder,
-  DifiNotesList,
-  DiFiResponse,
   ExtensionScope,
   FeedbackMessageCounts,
   FeedbackMessageTypes,
+  NotesFolder,
+  NotesListApiResponse,
   WatchMessageCounts,
   WatchMessageTypes,
 } from './common-types.js';
@@ -24,7 +22,7 @@ import {
   VALID_WATCH_MESSAGE_TYPES,
 } from './common.js';
 import { ExtensionAction } from './extension-action.js';
-import { CombinedMessageCenterResponses, combineMessageCenterApiRequests, RequestUtils } from './request-utils.js';
+import { CombinedMessageCenterResponses, combineMessageCenterApiRequests, requestApiConsole } from './request-utils.js';
 import { executeAction, isValidDate, parseHtml } from './utils.js';
 
 export function request(path: string, params: RequestInit = {}): Promise<Response> {
@@ -88,93 +86,60 @@ async function getFeedbackCount(
 /**
  * Retrieve the number of unread notes via a folder listing
  */
-async function getMessageCount(reqUtils: RequestUtils, read: ReadStateManager): Promise<[number, number]> {
-  let unreadOffset = 0;
-  const getUnreadFolderParams = (): DiFiCallRequest => ({
-    class: 'Notes',
-    method: 'display_folder',
-    args: ['unread', String(unreadOffset), true],
-  });
+async function getMessageCount(read: ReadStateManager): Promise<[number, number]> {
+  let notesOffset = 0;
+  let unreadFolderId = '';
+  const getNextNotes = () => requestApiConsole<NotesListApiResponse>('/notes', [
+    { name: 'folderid', value: unreadFolderId },
+    { name: 'offset', value: String(notesOffset) },
+    { name: 'limit', value: String(MAX_NEW_COUNTS.notes) },
+  ]);
 
   let totalCount = 0;
   let newNoteCount = 0;
-  const data = reqUtils.buildNewRequestParams([
-    {
-      class: 'DeveloperConsole',
-      method: 'do_api_request',
-      args: ['/notes/folders', []],
-    },
-    getUnreadFolderParams(),
-  ]);
 
-  const result: DiFiResponse<[
-    DiFiCall<{ results: DiFiNotesFolder[] }>,
-    DiFiCall<DifiNotesList>
-  ]> = await request(LINKS.difi, { method: 'POST', body: data }).then((r) => r.json());
-
-  const { content: totalContent, status: totalStatus } = result.DiFi.response.calls[0].response;
-
-  if (totalStatus !== 'SUCCESS') {
-    console.error('Failed to fetch note counts');
-    return [totalCount, newNoteCount];
-  }
-
-  const folders = (totalContent as { results: DiFiNotesFolder[] }).results;
-  if (Array.isArray(folders)) {
-    const unreadFolder = folders.find((folder) => folder.title === 'Unread');
-    if (unreadFolder) {
+  try {
+    const foldersListResponse = await requestApiConsole<ApiConsoleResponse<NotesFolder[]>>('/notes/folders');
+    const folders = foldersListResponse.results;
+    if (Array.isArray(folders)) {
+      const unreadFolder = folders.find((folder) => folder.title === 'Unread');
+      if (!unreadFolder) {
+        throw new Error('No unread folder found');
+      }
+      unreadFolderId = unreadFolder.folder;
       totalCount = parseInt(unreadFolder.count, 10);
     }
+  } catch (e) {
+    console.error(e);
+  }
+  if (unreadFolderId === '') {
+    console.error('Failed to fetch note folders');
+    return [totalCount, newNoteCount];
   }
 
   const notesLastRead = read.get('messages');
   const notesLastReadTime = notesLastRead ? notesLastRead.getTime() : DEFAULT_READ_AT_TIMESTAMP;
 
-  const getNextNotes = async () => {
-    const newData = reqUtils.buildNewRequestParams(getUnreadFolderParams());
+  // eslint-disable-next-line camelcase
+  const processNotesFolderResponse = async (response: NotesListApiResponse) => {
+    const unreadNotes = response.results.filter((note) => note.unread);
 
-    const newResult: DiFiResponse<[DiFiCall<DifiNotesList>]> = await request(LINKS.difi, {
-      method: 'POST',
-      body: newData,
-    })
-      .then((r) => r.json());
-
-    return newResult.DiFi.response.calls[0].response;
-  };
-
-  const processNotesFolderResponse = async (response: DiFiCall<DifiNotesList>['response']) => {
-    const { content, status } = response;
-
-    if (status !== 'SUCCESS') return;
-
-    const $content = parseHtml(content.body);
-    const $unreadNotes = $content.querySelectorAll('.note.unread');
-    const hasMore = $content.querySelector('.pages .next:not(.disabled)') !== null;
-    unreadOffset = content.offset + $unreadNotes.length;
-
-    $unreadNotes.forEach(($note) => {
-      const $timestamp = $note.querySelector('.ts');
-      if ($timestamp) {
-        const titleAttr = $timestamp.getAttribute('title');
-        if (titleAttr) {
-          const noteDate = new Date(titleAttr);
-          if (isValidDate(noteDate)) {
-            /**
-             * The timestamps on the notes appears to be in PDT, so we need to subtract the user's timezone offset
-             * and add PDT's to get an accurate timestamp
-             */
-            const pdtAdjustedTimestamp = noteDate.getTime() - (noteDate.getTimezoneOffset() * 60e3) + (7 * 36e5);
-            const timeSinceLastRead = pdtAdjustedTimestamp - notesLastReadTime;
-            if (timeSinceLastRead > 0) {
-              newNoteCount++;
-            }
-          }
+    unreadNotes.forEach((note) => {
+      const noteDate = new Date(note.ts);
+      if (isValidDate(noteDate)) {
+        const timeSinceLastRead = noteDate.getTime() - notesLastReadTime;
+        if (timeSinceLastRead > 0) {
+          newNoteCount++;
         }
       }
     });
 
-    if (hasMore) {
-      if (newNoteCount < MAX_NEW_COUNTS.notes) {
+    // eslint-disable-next-line camelcase
+    if (response.has_more) {
+      // eslint-disable-next-line camelcase
+      notesOffset += response.next_offset;
+
+      if (newNoteCount <= MAX_NEW_COUNTS.notes) {
         const nextPage = await getNextNotes();
         await processNotesFolderResponse(nextPage);
         return;
@@ -184,7 +149,8 @@ async function getMessageCount(reqUtils: RequestUtils, read: ReadStateManager): 
     }
   };
 
-  await processNotesFolderResponse(result.DiFi.response.calls[1].response);
+  const notesListResponse = await getNextNotes();
+  await processNotesFolderResponse(notesListResponse);
 
   return [totalCount, newNoteCount];
 }
@@ -252,8 +218,6 @@ export function checkSiteData(scope: ExtensionScope): void {
         return;
       }
 
-      await scope.reqUtils.updateParams(resp);
-
       let feedbackCount: FeedbackMessageCounts | undefined;
       let newFeedbackCount: FeedbackMessageCounts | undefined;
       const defaultFeedbackCount: FeedbackMessageCounts = { ...DEFAULT_MESSAGE_COUNTS.feedback };
@@ -271,7 +235,7 @@ export function checkSiteData(scope: ExtensionScope): void {
           [watchCount, newWatchCount],
         ] = await Promise.all([
           getFeedbackCount(defaultFeedbackCount, scope.options, scope.read),
-          getMessageCount(scope.reqUtils, scope.read),
+          getMessageCount(scope.read),
           getWatchCount(defaultWatchCount, scope.options, scope.read),
         ]);
       } catch (e) {

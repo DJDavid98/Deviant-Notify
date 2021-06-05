@@ -15,7 +15,7 @@ export const LINKS = {
   lightUrl: '/about/policy/etiquette/',
   feedbackApi: '/_napi/da-messagecentre/api/feedback',
   watchApi: '/_napi/da-messagecentre/api/watch',
-  difi: '/global/difi/',
+  consoleApiRequest: '/developers/console/do_api_request',
   notes: '/notifications/notes',
   feedback: '/notifications/feedback',
   watch: '/notifications/watch',
@@ -92,7 +92,7 @@ export const FEEDBACK_MESSAGE_TYPE_READABLE_NAMES: Record<FeedbackMessageTypes, 
  * A `+` should be added after the unread count if it is greater than this value
  */
 export const MAX_NEW_COUNTS = {
-  notes: 20,
+  notes: 50,
   notifications: 24,
 } as const;
 
