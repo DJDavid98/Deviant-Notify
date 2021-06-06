@@ -42,7 +42,8 @@
     }
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix"
+    "*.js": "echo \"JS files must not be comitted\"; exit 1",
+    "*.ts": "eslint --cache --fix"
   },
   "webExt": {
     "sourceDir": "deviantnotify"

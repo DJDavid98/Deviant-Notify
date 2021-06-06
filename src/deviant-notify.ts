@@ -40,7 +40,12 @@
 
   window.requestAnimationFrame(scheduleUpdate);
 
-  const delegateListener = (el: HTMLElement, elementSelector: string, eventName: string, handler: (e: Event) => void) => {
+  const delegateListener = (
+    el: HTMLElement,
+    elementSelector: string,
+    eventName: string,
+    handler: (e: Event) => void,
+  ) => {
     el.addEventListener(eventName, (e) => {
       // loop parent nodes from the target to the delegation node
       for (let { target } = e; target && target !== el; target = (target as HTMLElement).parentNode) {
