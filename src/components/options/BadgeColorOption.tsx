@@ -26,6 +26,8 @@ export const BadgeColorOption: VFC<PropTypes> = ({ value, errors, onChange }) =>
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectPreset: JSX.MouseEventHandler<HTMLSpanElement> = useCallback((e) => {
+    if (!inputRef.current) return;
+
     inputRef.current.value = (e.target as HTMLSpanElement).title;
     inputRef.current.dispatchEvent(new Event('change'));
   }, []);
