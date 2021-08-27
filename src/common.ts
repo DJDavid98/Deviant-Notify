@@ -66,6 +66,7 @@ export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
   watchIconStyle: VALID_ICON_STYLES.watch[0],
   watchDisabled: [],
   feedbackDisabled: [],
+  useSyncStorage: true,
 };
 
 export const WATCH_MESSAGE_TYPE_READABLE_NAMES: Record<WatchMessageTypes, string> = {

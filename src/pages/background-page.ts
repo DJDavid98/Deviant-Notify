@@ -1,7 +1,13 @@
 import { ErrorCollection } from '../classes/error-colection.js';
 import { OptionsManager } from '../classes/options-manager.js';
 import { MessageHandlers, OptionProcessingFailedResult, TotalMessageCounts } from '../common-types.js';
-import { DEFAULT_MESSAGE_COUNTS, isFirefox, LINKS, NOTIF_ID } from '../common.js';
+import {
+  DEFAULT_MESSAGE_COUNTS,
+  isFirefox,
+  LINKS,
+  MAX_NEW_COUNTS,
+  NOTIF_ID,
+} from '../common.js';
 import { checkSiteData } from '../data-fetching.js';
 import { ExtensionAction } from '../extension-action.js';
 import { openFeedbackNotifsPage, openNotesPage, openWatchNotifsPage } from '../page-openers.js';
@@ -21,7 +27,7 @@ singleton.options.loadUserOptions()
 const noop = () => undefined;
 
 const HANDLERS: MessageHandlers = {
-  [ExtensionAction.UPDATE_OPTIONS]: ({ data, resp }) => {
+  [ExtensionAction.UPDATE_OPTIONS]({ data, resp }) {
     singleton.options.processOptions(data)
       .then((results) => {
         const failed = results.filter((el): el is OptionProcessingFailedResult => !el.status);
@@ -41,12 +47,12 @@ const HANDLERS: MessageHandlers = {
       });
     return true;
   },
-  [ExtensionAction.GET_SELECTORS]: ({ resp }) => {
+  [ExtensionAction.GET_SELECTORS]({ resp }) {
     resp({
       onlyDomain: singleton.options.get('preferredDomain'),
     });
   },
-  [ExtensionAction.ON_SITE_UPDATE]: ({ data }) => {
+  [ExtensionAction.ON_SITE_UPDATE]({ data }) {
     singleton.extension.setAutoThemeFromBodyClasses(data.bodyClass);
 
     // Always attempt to check again when not signed in on page load
@@ -58,38 +64,47 @@ const HANDLERS: MessageHandlers = {
 
     singleton.extension.restartUpdateInterval(immediateRecheck);
   },
-  [ExtensionAction.TEST_MESSAGE]: ({ data }) => {
+  [ExtensionAction.TEST_MESSAGE]({ data }) {
     const id = `${NOTIF_ID}-Test`;
     singleton.notifier.clearNotif(id)
       .then(() => {
         const prefs = new OptionsManager(singleton, data);
-        const randomMax = 256;
         const counts: TotalMessageCounts = {
           feedback: {
             ...DEFAULT_MESSAGE_COUNTS.feedback,
-            comments: Math.round(Math.random() * randomMax),
+            comments: Math.round(Math.random() * MAX_NEW_COUNTS.notifications),
           },
-          messages: Math.round(Math.random() * randomMax),
-          watch: {
-            ...DEFAULT_MESSAGE_COUNTS.watch,
-          },
+          messages: Math.round(Math.random() * MAX_NEW_COUNTS.notes),
+          watch: { ...DEFAULT_MESSAGE_COUNTS.watch },
         };
         singleton.notifier.show(counts, id, prefs);
       });
   },
-  [ExtensionAction.SET_MARK_READ]: ({ data }) => {
-    singleton.read.update(data);
+  [ExtensionAction.SET_MARK_READ]({ data }) {
+    void singleton.read.update(data);
   },
-  [ExtensionAction.CLEAR_MARK_READ]: () => {
-    singleton.read.clear();
+  [ExtensionAction.CLEAR_MARK_READ]() {
+    void singleton.read.clear();
   },
-  [ExtensionAction.GET_POPUP_DATA]: ({ resp }) => void resp(singleton.extension.getPopupData()),
-  [ExtensionAction.GET_OPTIONS_DATA]: ({ resp }) => void resp(singleton.extension.getOptionsData()),
-  [ExtensionAction.INSTANT_UPDATE]: () => void singleton.extension.restartUpdateInterval(true),
-  [ExtensionAction.OPEN_NOTIFS_PAGE]: () => void openFeedbackNotifsPage(),
-  [ExtensionAction.OPEN_MESSAGES_PAGE]: () => void openNotesPage(),
-  [ExtensionAction.OPEN_WATCH_PAGE]: () => void openWatchNotifsPage(),
-  [ExtensionAction.OPEN_SIGN_IN_PAGE]: () => {
+  [ExtensionAction.GET_POPUP_DATA]({ resp }) {
+    resp(singleton.extension.getPopupData());
+  },
+  [ExtensionAction.GET_OPTIONS_DATA]({ resp }) {
+    resp(singleton.extension.getOptionsData());
+  },
+  [ExtensionAction.INSTANT_UPDATE]() {
+    singleton.extension.restartUpdateInterval(true);
+  },
+  [ExtensionAction.OPEN_NOTIFS_PAGE]() {
+    openFeedbackNotifsPage();
+  },
+  [ExtensionAction.OPEN_MESSAGES_PAGE]() {
+    openNotesPage();
+  },
+  [ExtensionAction.OPEN_WATCH_PAGE]() {
+    openWatchNotifsPage();
+  },
+  [ExtensionAction.OPEN_SIGN_IN_PAGE]() {
     chrome.tabs.create({ url: makeURLFromPath(LINKS.signInPage, singleton.options) });
   },
   [ExtensionAction.BROADCAST_POPUP_UPDATE]: noop,

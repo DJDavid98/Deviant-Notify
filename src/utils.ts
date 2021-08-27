@@ -1,4 +1,4 @@
-import { ExtensionActionData, ExtensionActionResponses, ExtensionOptions } from './common-types.js';
+import { StorageLocation, ExtensionActionData, ExtensionActionResponses, ExtensionOptions } from './common-types.js';
 import { constructTotalMessagesRecord, isFirefox } from './common.js';
 import { ExtensionAction } from './extension-action.js';
 
@@ -176,9 +176,46 @@ export const recursiveSum = <T extends NumberObject>(obj: T | number | undefined
 export const emptyNode = (node: Node): void => Array.from(node.childNodes)
   .forEach((child) => void node.removeChild(child));
 
-export const isValidDate = (date?: Date):boolean => date instanceof Date && !Number.isNaN(date.getTime());
+export const isValidDate = (date?: Date): boolean => date instanceof Date && !Number.isNaN(date.getTime());
 
 export const capNumberWithPlus = (n: number, max: number): string => `${n > max ? `${max}+` : n}`;
 
 export const markAllNotifsRead = (): void =>
   void executeAction(ExtensionAction.SET_MARK_READ, constructTotalMessagesRecord(new Date()));
+
+export const getItemsFromBrowserStorage = (
+  storageKey: StorageLocation,
+  key: string,
+): Promise<Record<string, unknown>> => {
+  if (isFirefox) {
+    return browser.storage[storageKey].get(key);
+  }
+
+  return new Promise((res) => {
+    chrome.storage[storageKey].get(key, (items) => {
+      res(items);
+    });
+  });
+};
+
+export const setItemInBrowserStorage = (storageKey: StorageLocation, key: string, value: string): Promise<void> => {
+  const updateObject = { [key]: value };
+
+  if (isFirefox) {
+    return browser.storage[storageKey].set(updateObject);
+  }
+
+  return new Promise((res) => {
+    chrome.storage[storageKey].set(updateObject, () => res());
+  });
+};
+
+export const removeItemFromBrowserStorage = (storageKey: StorageLocation, key: string): Promise<void> => {
+  if (isFirefox) {
+    return browser.storage[storageKey].remove(key);
+  }
+
+  return new Promise((res) => {
+    chrome.storage[storageKey].remove(key, () => res());
+  });
+};

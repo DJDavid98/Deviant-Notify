@@ -8,7 +8,9 @@ import {
   VALID_WATCH_MESSAGE_TYPES,
 } from '../common.js';
 import { checkDomainPermissions } from '../domain-permissions.js';
+import { AsyncLocalStorage, AsyncSyncStorage } from '../storage.js';
 import { broaderArrayIncludes, eachStrict, isRgbArray } from '../utils.js';
+import { AsyncStorage } from './async-storage.js';
 
 export class OptionsManager {
   private readonly LOCAL_STORAGE_KEY = 'options';
@@ -85,6 +87,9 @@ export class OptionsManager {
         case 'notifEnabled':
           if (typeof value !== 'boolean') errors.push('Invalid value for notification enable/disable toggle');
           break;
+        case 'useSyncStorage':
+          if (typeof value !== 'boolean') errors.push('Invalid value for synchronize read state toggle');
+          break;
         case 'notifSound':
           if (typeof value !== 'boolean') errors.push('Invalid value for notification sound on/off toggle');
           break;
@@ -146,8 +151,8 @@ export class OptionsManager {
     name: K,
     value: ExtensionOptions[K],
     errors: string[],
-    rej: (errors: string[]
-  ) => void,
+    rej: (errors: string[],
+    ) => void,
   ): void {
     console.error('Failed to set setting', name, value, errors);
     rej(errors);
@@ -158,8 +163,9 @@ export class OptionsManager {
     value: ExtensionOptions[K],
     res: VoidFunction,
   ): void {
+    const oldValue = this.values[name];
     this.values[name] = value;
-    this.postSetting(name, value);
+    this.postSetting(name, value, oldValue);
     res();
   }
 
@@ -190,7 +196,11 @@ export class OptionsManager {
     this.scope.extension.restartUpdateInterval(recheck);
   }
 
-  postSetting<K extends keyof ExtensionOptions>(name: K, value: ExtensionOptions[K]): void {
+  postSetting<K extends keyof ExtensionOptions>(
+    name: K,
+    value: ExtensionOptions[K],
+    oldValue: ExtensionOptions[K],
+  ): void {
     switch (name) {
       case 'badgeColor':
         this.scope.extension.setBadgeColor();
@@ -200,6 +210,15 @@ export class OptionsManager {
         break;
       case 'notifTimeout':
         if (value !== 0) this.scope.notifier.setNotifTimeout();
+        break;
+      case 'useSyncStorage':
+        if (oldValue !== value) {
+          void this.scope.read.migrateData(
+            this.getReadStateStorage(oldValue as ExtensionOptions['useSyncStorage']),
+            this.getReadStateStorage(value as ExtensionOptions['useSyncStorage']),
+          );
+        }
+        break;
     }
   }
 
@@ -211,5 +230,12 @@ export class OptionsManager {
 
   getAll(): ExtensionOptions {
     return this.values;
+  }
+
+  getReadStateStorage(settingValue = this.get('useSyncStorage')): AsyncStorage {
+    if (settingValue) {
+      return AsyncSyncStorage;
+    }
+    return AsyncLocalStorage;
   }
 }

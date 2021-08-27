@@ -20,6 +20,7 @@ import { NotificationStyleOptions } from './NotificationIconStyleOption.js';
 import { NotificationSoundOption } from './NotificationSoundOption.js';
 import { NotificationTimeoutOption } from './NotificationTimeoutOption.js';
 import { PreferredDomainOption } from './PreferredDomainOption.js';
+import { SyncStorageOption } from './SyncStorageOption.js';
 import { ThemeOption } from './ThemeOption.js';
 import { UpdateIntervalOption } from './UpdateIntervalOption.js';
 import { WatchNotificationOptions } from './WatchNotificationOptions.js';
@@ -140,6 +141,12 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
           onChange={defaultChangeHandler}
         />
 
+        <SyncStorageOption
+          errors={errors}
+          value={options.useSyncStorage}
+          onChange={defaultChangeHandler}
+        />
+
         <FeedbackNotificationOptions
           errors={errors}
           value={options.feedbackDisabled}
@@ -203,7 +210,7 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
         </div>
         <div className="flex-test">
           <button type="button" className="button button-link" id="test-button" onClick={testNotification}>
-            Test Settings
+            Test Notification
           </button>
         </div>
       </div>

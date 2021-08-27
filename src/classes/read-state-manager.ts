@@ -2,22 +2,30 @@ import type { DeepPartial } from 'tsdef';
 import { ExtensionReadStates, ExtensionScope } from '../common-types.js';
 import { DEFAULT_READ_STATE } from '../common.js';
 import { isValidDate } from '../utils.js';
+import { AsyncStorage } from './async-storage.js';
 
 export class ReadStateManager {
-  private readonly LOCAL_STORAGE_KEY = 'readState';
+  private readonly STORAGE_KEY = 'readState';
 
   private values: ExtensionReadStates;
 
-  constructor(
-    private scope: ExtensionScope,
-  ) {
+  constructor(private scope: ExtensionScope) {
     this.values = JSON.parse(JSON.stringify(DEFAULT_READ_STATE));
   }
 
-  load(): void {
+  protected async tryToMigrateOldLocalstorage(): Promise<void> {
+    const dataToMigrate = localStorage.getItem(this.STORAGE_KEY);
+    if (dataToMigrate === null) return;
+
+    await this.storage.setItem(this.STORAGE_KEY, dataToMigrate);
+  }
+
+  async load(): Promise<void> {
+    await this.tryToMigrateOldLocalstorage();
+
     let parsed;
     try {
-      const item = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+      const item = await this.storage.getItem(this.STORAGE_KEY);
       if (item) {
         parsed = JSON.parse(item);
       }
@@ -85,18 +93,18 @@ export class ReadStateManager {
     }
   }
 
-  update(setThese: DeepPartial<ExtensionReadStates>): void {
+  async update(setThese: DeepPartial<ExtensionReadStates>): Promise<void> {
     this.processValues(setThese);
-    this.save();
+    await this.save();
   }
 
-  save(): void {
-    localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(this.values));
+  async save(): Promise<void> {
+    await this.storage.setItem(this.STORAGE_KEY, JSON.stringify(this.values));
     this.scope.extension.restartUpdateInterval(true);
   }
 
-  clear(): void {
-    localStorage.removeItem(this.LOCAL_STORAGE_KEY);
+  async clear(): Promise<void> {
+    await this.storage.removeItem(this.STORAGE_KEY);
     this.values = JSON.parse(JSON.stringify(DEFAULT_READ_STATE));
     this.scope.extension.restartUpdateInterval(true);
   }
@@ -109,5 +117,17 @@ export class ReadStateManager {
 
   getAll(): ExtensionReadStates {
     return this.values;
+  }
+
+  protected get storage(): AsyncStorage {
+    return this.scope.options.getReadStateStorage();
+  }
+
+  async migrateData(from: AsyncStorage, to: AsyncStorage): Promise<void> {
+    const existingData = await from.getItem(this.STORAGE_KEY);
+    if (existingData === null) return;
+
+    await to.setItem(this.STORAGE_KEY, existingData);
+    await from.removeItem(this.STORAGE_KEY);
   }
 }

@@ -214,7 +214,7 @@ export function checkSiteData(scope: ExtensionScope): void {
 
       if (!signedIn) {
         scope.extension.setSignedIn(false);
-        executeAction(ExtensionAction.BROADCAST_POPUP_UPDATE, scope.extension.getPopupData());
+        await executeAction(ExtensionAction.BROADCAST_POPUP_UPDATE, scope.extension.getPopupData());
         return;
       }
 

@@ -51,6 +51,7 @@ export interface ExtensionOptions {
   watchIconStyle: string;
   watchDisabled: string[];
   feedbackDisabled: string[];
+  useSyncStorage: boolean;
 }
 
 export type CookieObject = browser.cookies.Cookie | chrome.cookies.Cookie;
@@ -182,6 +183,7 @@ interface NotesListItem {
 /* eslint-disable camelcase */
 export type NotesListApiResponse = ApiConsoleResponse<NotesListItem[]>
   & ({ has_more: true; next_offset: number } | { has_more: false; next_offset: null })
+
 /* eslint-enable camelcase */
 
 export interface ExtensionActionData {
@@ -202,7 +204,7 @@ export interface ExtensionActionData {
 }
 
 interface GetSelectorsData {
-  onlyDomain: string
+  onlyDomain: string;
 }
 
 export interface ExtensionActionResponses {
@@ -225,6 +227,9 @@ export interface ExtensionActionResponses {
   [ExtensionAction.CLEAR_MARK_READ]: void;
 }
 
+/**
+ * For the default handler to work, this value must be in sync with the {@see ExtensionOptions} key
+ */
 export enum OptionsFieldNames {
   BADGE_COLOR = 'badgeColor',
   PREFERRED_DOMAIN = 'preferredDomain',
@@ -238,6 +243,7 @@ export enum OptionsFieldNames {
   NOTIF_ENABLED = 'notifEnabled',
   NOTIF_TIMEOUT = 'notifTimeout',
   NOTIF_ICONS = 'notifIcons',
+  SYNC_STORAGE = 'useSyncStorage',
 }
 
 export type MessageHandlers = {
@@ -258,3 +264,9 @@ declare global {
 export type LinkCreator<T = string> = (type?: T) => string;
 export type ReadStateUpdater = (date: Date) => DeepPartial<ExtensionReadStates>;
 export type TypedReadStateUpdater<T = string> = (type: T) => (date: Date) => DeepPartial<ExtensionReadStates>;
+
+export enum StorageLocation {
+  LOCAL = 'local',
+  SYNC = 'sync',
+  MANAGED = 'managed',
+}
