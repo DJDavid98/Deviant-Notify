@@ -8,6 +8,6 @@ export const getFeedbackNotifsPath: LinkCreator<FeedbackMessageTypes> = (type): 
   getTypedPath(LINKS.feedback, type);
 
 export const getWatchNotifsPath: LinkCreator<WatchMessageTypes> = (type?: WatchMessageTypes): string =>
-  getTypedPath(LINKS.watch, type);
+  getTypedPath(LINKS.watch, type === 'misc' ? 'miscellaneous' : type);
 
 export const getNotesPath = (): string => LINKS.notes;
