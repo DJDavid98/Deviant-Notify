@@ -148,11 +148,12 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
           onChange={defaultChangeHandler}
         />
 
-        <BetaNotificationSupportOption value={options.betaNotificationsSupport} />
+        <BetaNotificationSupportOption value={options.betaNotificationsSupport}/>
 
         <FeedbackNotificationOptions
           errors={errors}
           value={options.feedbackDisabled}
+          aggregateOnly={options.betaNotificationsSupport}
           onChange={feedbackEnabledChangeHandler}
         />
 

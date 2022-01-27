@@ -15,7 +15,7 @@ interface PropTypes extends CountDisplayComponentProps {
   subLabels: Record<string, string>;
   keysInOrder?: string[] | readonly string[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  keyReadStateUpdater?: (key: any) => (date: Date) => DeepPartial<ExtensionReadStates>
+  keyReadStateUpdater?: (key: any) => (date: Date) => DeepPartial<ExtensionReadStates>;
 }
 
 export const ObjectCountDisplay: VFC<PropTypes> = ({
@@ -33,11 +33,7 @@ export const ObjectCountDisplay: VFC<PropTypes> = ({
   const newCount = recursiveSum(newCounts);
 
   return (
-    <NumberCountDisplay
-      count={totalCount}
-      newCount={newCount}
-      {...numberCountProps}
-    >
+    <NumberCountDisplay count={totalCount} newCount={newCount} {...numberCountProps}>
       <ul>
         {(keysInOrder || Object.keys(counts)).map((key) => (
           counts[key] > 0

@@ -23,8 +23,7 @@ const renderPage = (response: PopupData) => {
   if ($dynamicFooter) render(<PopupFooter {...response} />, $dynamicFooter);
 };
 
-executeAction(ExtensionAction.GET_POPUP_DATA)
-  .then(renderPage);
+executeAction(ExtensionAction.GET_POPUP_DATA).then(renderPage);
 
 chrome.runtime.onMessage.addListener((req) => {
   const { action, data } = req;

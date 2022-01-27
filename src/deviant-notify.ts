@@ -15,6 +15,15 @@
   const sendMessage = (action: string) => new Promise((res) => void (
     isFirefox ? browser.runtime.sendMessage({ action }).then(res) : chrome.runtime.sendMessage({ action }, res)
   ));
+  const detectBetaNotificationsEnabled = (): boolean => {
+    // This element most likely exists on all pages except the notification center itself
+    const notificationPopupContainer = document.getElementById('site-header-notifications');
+    if (notificationPopupContainer !== null) return true;
+
+    // This path redirects to `/notifications/watch` if the new beta is not enabled yet
+    // If this content script executes on this path the user must be part of the beta
+    return window.location.pathname === '/notifications';
+  };
   const scheduleUpdate = (): void => {
     // Update auto theme setting value on page load
     sendMessage(ACTIONS.GET_SELECTORS)
@@ -29,8 +38,7 @@
 
         const data = {
           bodyClass: document.body.className,
-          // Detect new notification system
-          betaNotificationsSupport: document.getElementById('site-header-notifications') !== null,
+          betaNotificationsSupport: detectBetaNotificationsEnabled(),
         };
 
         chrome.runtime.sendMessage({

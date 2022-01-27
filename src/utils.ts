@@ -134,8 +134,7 @@ export function processInputChangeEvent(el: EventTarget | null): {
     case 'select': {
       const select = el as HTMLSelectElement;
       if (select.multiple) {
-        value = Array.from(select.selectedOptions)
-          .map((option) => option.value || option.innerText);
+        value = Array.from(select.selectedOptions).map((option) => option.value || option.innerText);
       }
     }
     // eslint-disable-next-line no-fallthrough

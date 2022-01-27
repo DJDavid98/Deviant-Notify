@@ -68,21 +68,23 @@ export interface MessageCenterApiResponse<Type = string, ResultType = unknown> {
   results: ResultType[];
 }
 
+export interface GRUser {
+  userId: number;
+  useridUuid: string;
+  username: string;
+  usericon: string;
+  type: string | 'regular' | 'group' | 'super group';
+  isWatching: boolean;
+  isNewDeviant: boolean;
+}
+
 export interface MessageCenterItemResult<Subject = unknown> {
   messageId: string;
   type: string;
   orphaned: boolean;
   ts: string;
   isNew: boolean;
-  originator: {
-    userId: number;
-    useridUuid: string;
-    username: string;
-    usericon: string;
-    type: string;
-    isWatching: boolean;
-    isNewDeviant: boolean;
-  };
+  originator: GRUser;
   subject: Subject;
 }
 

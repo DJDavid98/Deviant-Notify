@@ -18,8 +18,11 @@ export const LINKS = {
   consoleApiRequest: '/developers/console/do_api_request',
   notes: '/notifications/notes',
   feedback: '/notifications/feedback',
+  betaNotifications: '/notifications',
   watch: '/notifications/watch',
   signInPage: '/users/login',
+  ncIdentity: '/_napi/shared_api/nc/identity',
+  ncDrawer: '/_napi/shared_api/nc/drawer',
 } as const;
 export const VALID_DOMAINS = (() => {
   const manifest = chrome.runtime.getManifest();
@@ -50,6 +53,8 @@ export const VALID_FEEDBACK_MESSAGE_TYPES = [
   'mentions',
   'activity',
   'correspondence',
+  // Used for new notification center
+  'aggregate',
 ] as const;
 
 export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
@@ -86,6 +91,7 @@ export const FEEDBACK_MESSAGE_TYPE_READABLE_NAMES: Record<FeedbackMessageTypes, 
   mentions: 'Mention',
   activity: 'Activity',
   correspondence: 'Correspondence',
+  aggregate: 'Combined Total',
 };
 
 /**
@@ -105,6 +111,7 @@ export const constructTotalMessagesRecord = <T>(defaultValue: T): TotalMessagesR
     correspondence: defaultValue,
     mentions: defaultValue,
     replies: defaultValue,
+    aggregate: defaultValue,
   },
   messages: defaultValue,
   watch: {

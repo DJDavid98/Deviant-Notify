@@ -13,8 +13,8 @@ import {
   VALID_WATCH_MESSAGE_TYPES,
   WATCH_MESSAGE_TYPE_READABLE_NAMES,
 } from '../../common.js';
-import { getFeedbackNotifsPath, getNotesPath, getWatchNotifsPath } from '../../link-builders.js';
-import { h, useCallback } from '../../vendor/preact.js';
+import { getBetaNotifsPath, getFeedbackNotifsPath, getNotesPath, getWatchNotifsPath } from '../../link-builders.js';
+import { h, useCallback, useMemo } from '../../vendor/preact.js';
 import { NumberCountDisplay } from './NumberCountDisplay.js';
 import { ObjectCountDisplay } from './ObjectCountDisplay.js';
 
@@ -24,6 +24,7 @@ export const AllCountsDisplay: VFC<PopupData> = ({
   messages,
   newCounts,
   updating,
+  prefs,
 }) => {
   const handleFeedbackReadKeyStateUpdate: TypedReadStateUpdater<FeedbackMessageTypes> = useCallback((type) =>
     (date) => {
@@ -47,6 +48,11 @@ export const AllCountsDisplay: VFC<PopupData> = ({
       [c]: date,
     }), {}),
   }), []);
+
+  const displayedFeedbackMessageTypes = useMemo(
+    () => VALID_FEEDBACK_MESSAGE_TYPES.filter((item) => item !== 'aggregate'),
+    [],
+  );
   return (
     <div id="count-display">
       <NumberCountDisplay
@@ -61,16 +67,18 @@ export const AllCountsDisplay: VFC<PopupData> = ({
       />
       <ObjectCountDisplay
         counts={feedback}
+        maxCount={prefs.betaNotificationsSupport ? MAX_NEW_COUNTS.notifications : undefined}
         newCounts={newCounts.feedback}
         maxNewCount={MAX_NEW_COUNTS.notifications}
         mainLabel="Feedback Message"
         icon="bell"
         subLabels={FEEDBACK_MESSAGE_TYPE_READABLE_NAMES}
-        linkCreator={getFeedbackNotifsPath}
-        keysInOrder={VALID_FEEDBACK_MESSAGE_TYPES}
+        linkCreator={prefs.betaNotificationsSupport ? getBetaNotifsPath : getFeedbackNotifsPath}
+        keysInOrder={displayedFeedbackMessageTypes}
         readStateUpdater={handleFeedbackReadStateUpdate}
         updating={updating}
         keyReadStateUpdater={handleFeedbackReadKeyStateUpdate}
+        displayMarkRead={!prefs.betaNotificationsSupport}
       />
       <ObjectCountDisplay
         counts={watch}
