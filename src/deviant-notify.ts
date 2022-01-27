@@ -16,9 +16,11 @@
     isFirefox ? browser.runtime.sendMessage({ action }).then(res) : chrome.runtime.sendMessage({ action }, res)
   ));
   const detectBetaNotificationsEnabled = (): boolean => {
-    // This element most likely exists on all pages except the notification center itself
     const notificationPopupContainer = document.getElementById('site-header-notifications');
-    if (notificationPopupContainer !== null) return true;
+    if (notificationPopupContainer) {
+      const firstChild = notificationPopupContainer.children[0];
+      return !firstChild.className.includes('theme-');
+    }
 
     // This path redirects to `/notifications/watch` if the new beta is not enabled yet
     // If this content script executes on this path the user must be part of the beta
