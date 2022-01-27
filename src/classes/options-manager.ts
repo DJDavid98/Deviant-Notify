@@ -96,6 +96,9 @@ export class OptionsManager {
         case 'notifIcons':
           if (typeof value !== 'boolean') errors.push('Invalid value for notification button icons on/off toggle');
           break;
+        case 'betaNotificationsSupport':
+          if (typeof value !== 'boolean') errors.push('Invalid value for beta notification support setting');
+          break;
         case 'bellIconStyle':
           if (typeof value !== 'string' || !broaderArrayIncludes(VALID_ICON_STYLES.bell, value)) {
             errors.push('The bell icon style is invalid');

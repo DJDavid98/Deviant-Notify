@@ -52,6 +52,7 @@ export interface ExtensionOptions {
   watchDisabled: string[];
   feedbackDisabled: string[];
   useSyncStorage: boolean;
+  betaNotificationsSupport: boolean;
 }
 
 export type CookieObject = browser.cookies.Cookie | chrome.cookies.Cookie;
@@ -190,7 +191,7 @@ export interface ExtensionActionData {
   [ExtensionAction.UPDATE_OPTIONS]: ExtensionOptions;
   [ExtensionAction.OPEN_SIGN_IN_PAGE]: void;
   [ExtensionAction.GET_SELECTORS]: void;
-  [ExtensionAction.ON_SITE_UPDATE]: { bodyClass: string };
+  [ExtensionAction.ON_SITE_UPDATE]: { bodyClass: string, betaNotificationsSupport: boolean };
   [ExtensionAction.TEST_MESSAGE]: ExtensionOptions;
   [ExtensionAction.GET_POPUP_DATA]: void;
   [ExtensionAction.GET_OPTIONS_DATA]: void;
@@ -244,6 +245,7 @@ export enum OptionsFieldNames {
   NOTIF_TIMEOUT = 'notifTimeout',
   NOTIF_ICONS = 'notifIcons',
   SYNC_STORAGE = 'useSyncStorage',
+  BETA_NOTIFICATIONS_SUPPORT = 'betaNotificationsSupport',
 }
 
 export type MessageHandlers = {

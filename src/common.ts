@@ -67,6 +67,7 @@ export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
   watchDisabled: [],
   feedbackDisabled: [],
   useSyncStorage: true,
+  betaNotificationsSupport: false,
 };
 
 export const WATCH_MESSAGE_TYPE_READABLE_NAMES: Record<WatchMessageTypes, string> = {

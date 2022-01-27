@@ -1,6 +1,11 @@
 import { ErrorCollection } from '../classes/error-colection.js';
 import { OptionsManager } from '../classes/options-manager.js';
-import { MessageHandlers, OptionProcessingFailedResult, TotalMessageCounts } from '../common-types.js';
+import {
+  MessageHandlers,
+  OptionProcessingFailedResult,
+  OptionsFieldNames,
+  TotalMessageCounts,
+} from '../common-types.js';
 import {
   DEFAULT_MESSAGE_COUNTS,
   isFirefox,
@@ -54,6 +59,7 @@ const HANDLERS: MessageHandlers = {
   },
   [ExtensionAction.ON_SITE_UPDATE]({ data }) {
     singleton.extension.setAutoThemeFromBodyClasses(data.bodyClass);
+    singleton.options.setSetting(OptionsFieldNames.BETA_NOTIFICATIONS_SUPPORT, data.betaNotificationsSupport);
 
     // Always attempt to check again when not signed in on page load
     let immediateRecheck = !singleton.extension.getSignedIn();

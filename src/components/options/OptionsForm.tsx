@@ -24,6 +24,7 @@ import { SyncStorageOption } from './SyncStorageOption.js';
 import { ThemeOption } from './ThemeOption.js';
 import { UpdateIntervalOption } from './UpdateIntervalOption.js';
 import { WatchNotificationOptions } from './WatchNotificationOptions.js';
+import { BetaNotificationSupportOption } from './BetaNotificationSupportOption.js';
 
 interface PropTypes {
   prefs: OptionsData['prefs'];
@@ -146,6 +147,8 @@ export const OptionsForm: VFC<PropTypes> = ({ prefs, refresh }) => {
           value={options.useSyncStorage}
           onChange={defaultChangeHandler}
         />
+
+        <BetaNotificationSupportOption value={options.betaNotificationsSupport} />
 
         <FeedbackNotificationOptions
           errors={errors}

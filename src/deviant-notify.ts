@@ -29,6 +29,8 @@
 
         const data = {
           bodyClass: document.body.className,
+          // Detect new notification system
+          betaNotificationsSupport: document.getElementById('site-header-notifications') !== null,
         };
 
         chrome.runtime.sendMessage({

@@ -18,8 +18,8 @@
     "build:zip": "cd deviantnotify && createArchive -mx1 \"../deviantnotify.zip\" \"*\"",
     "build": "run-s build:clean build:compile build:zip",
     "copy:preact-js": "cpy node_modules/preact/dist/preact.umd.js deviantnotify/vendor",
-    "copy:preact-hooks-js": "cpy node_modules/preact/hooks/dist/hooks.umd.js  deviantnotify/vendor",
-    "copy:preact-license": "cpy node_modules/preact/LICENSE  deviantnotify/vendor",
+    "copy:preact-hooks-js": "cpy node_modules/preact/hooks/dist/hooks.umd.js deviantnotify/vendor",
+    "copy:preact-license": "cpy node_modules/preact/LICENSE deviantnotify/vendor",
     "postintall": "run-p copy:preact-js copy:preact-hooks-js copy:preact-license"
   },
   "devDependencies": {
@@ -41,8 +41,7 @@
     "preact": "^10.5.14",
     "rimraf": "^3.0.2",
     "tsdef": "0.0.14",
-    "typescript": "^4.4.2",
-    "web-ext": "^6.1.0"
+    "typescript": "^4.4.2"
   },
   "husky": {
     "hooks": {
