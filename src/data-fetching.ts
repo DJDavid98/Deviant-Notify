@@ -60,10 +60,10 @@ async function getFeedbackCount(
   read: ReadStateManager,
 ): Promise<CombinedMessageCenterResponses<FeedbackMessageTypes>> {
   const disabledTypes = options.get('feedbackDisabled');
-  let messageTypes: string[] = [...VALID_FEEDBACK_MESSAGE_TYPES];
+  let messageTypes: string[] = [...VALID_FEEDBACK_MESSAGE_TYPES].filter((type) => type !== 'aggregate');
   if (Array.isArray(disabledTypes) && disabledTypes.length > 0) {
     // Shortcut to return 0 if all types are disabled
-    if (disabledTypes.length === VALID_FEEDBACK_MESSAGE_TYPES.length) {
+    if (disabledTypes.length === messageTypes.length) {
       return [defaultCounts, undefined];
     }
 
