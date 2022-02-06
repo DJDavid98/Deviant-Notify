@@ -38,17 +38,33 @@ I'm soliciting user feedback through GitHub issues as well as through e-mail at 
 ## Build instructions
 
 1. Install the latest version of Node.js and NPM for your platform
-2. Execute `npm ci` in the root directory
+2. Execute `npm ci --verbose` in the root directory<br>
+   Please note that on systems with a slow Internet connection or in virtualized environments this step may take a long time (multiple minutes) and it might even appear to freeze at times.
+   The `--verbose` flag instructs the CLI to display additional log information and causes messages in the console to persist making diagnosing issues easier.
 3. Execute `npm run postintall` in the root directory
-4. Execute `npm run build` in the root directory
+4. Execute `npm run build` in the root directory<br>
+   If this step gives you an error message, please read everything below.
 
-After this, the contents of the `deviantnotify` folder is the build output. Additionally, a zip file is created in the root folder named `deviantnotify.zip`, which gets uploaded to the extension hosting sites.
+After this, the contents of the `deviantnotify` folder is the build output. Additionally, an attempt is made to create a zip file in the root folder named `deviantnotify.zip`, which gets uploaded to the extension hosting sites.
 
-Sometimes `node-7z-archive` can fail to install binaries, in which case step 2 will fail with an error similar to this:
+Sometimes `node-7z-archive` can fail to install binaries, in which case the build command will appear to fail with an error similar to this:
 
+> Creating/adding...
+> CreateArchive failed using `7z`, retying with `7za`.
+> --- error:
 > Error: spawn (…)\node_modules\node-7z-archive\binaries\win32\7za.exe ENOENT
 
-In this case the build actually succeeded, and only the final zipping step failed. You can simply use the contents of the `deviantnotify` folder and/or zip it manually using your favourite tool.
+or this:
+
+> Creating/adding...
+> CreateArchive failed using `7z`, retying with `7za`.
+> --- error:
+> Error: spawn (…)/node_modules/node-7z-archive/binaries/linux/7za EACCES
+
+
+In this case the **build actually succeeded**, and only the final zipping step failed. This is a known issue with the zipping package, and there isn't a simple fix from what I've found.
+
+You can simply **use the contents of the `deviantnotify` folder** and/or zip it manually using your favourite tool.
 
 ### Explanation
 
