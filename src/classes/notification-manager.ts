@@ -26,10 +26,10 @@ export class NotificationManager {
   constructor(private scope: ExtensionScope) {
     this.sound = new Audio();
     this.sound.src = 'da_notifier.ogg';
-    this.sound.preload = 'true';
+    this.sound.preload = '';
   }
 
-  buildNotifParams(counts: TotalMessageCounts, id : string = NOTIF_ID): NotifyParams {
+  buildNotifParams(counts: TotalMessageCounts, id: string = NOTIF_ID): NotifyParams {
     const buttons = [];
     const feedbackMessageCount = recursiveSum(counts.feedback);
     const watchMessageCount = recursiveSum(counts.watch);
